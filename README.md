@@ -1,5 +1,4 @@
 # CS3300-missile-money
-Project for Missile Money project in CS3300
 MIT License
 Copyright 2025 Joe Weibel
 
