@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Missile Money{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Financial Dashboard</h1>
+    <p>Welcome to your financial command center. Track, analyze, and optimize your money.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+    <div class="card">
+        <h3>💰 Total Balance</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">$0.00</p>
+        <small>Available funds</small>
+    </div>
+    
+    <div class="card">
+        <h3>📈 Monthly Income</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">$0.00</p>
+        <small>This month</small>
+    </div>
+    
+    <div class="card">
+        <h3>📉 Monthly Expenses</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #ff4444;">$0.00</p>
+        <small>This month</small>
+    </div>
+    
+    <div class="card">
+        <h3>🎯 Savings Goal</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">0%</p>
+        <small>Progress</small>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h2>Recent Transactions</h2>
+    <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+        No transactions yet. <a href="#" style="color: var(--accent-primary);">Add your first transaction</a>
+    </p>
+</div>
+
+<div class="card" style="margin-top: 1rem;">
+    <h2>Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button class="btn">Add Income</button>
+        <button class="btn" style="background-color: #ff4444;">Add Expense</button>
+        <button class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</button>
+    </div>
+</div>
+{% endblock %}
