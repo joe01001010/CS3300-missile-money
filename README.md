@@ -1,4 +1,30 @@
 # CS3300-missile-money
+
+
+A Django-based web platform for the web application Missle Money.
+
+
+### 1. Change directories into the project directory
+cd CS3300-missile-money
+
+### 2. Create the virtual environment
+python -m venv missile_money_venv
+
+### 3. Activate the virtual environment
+python .\missile_money_venv\Scripts\Activate.ps1
+
+### 4. Install dependencies
+pip install -r requirements.txt
+
+### 4. Run the server
+python .\missile_money\manage.py runserver
+
+### 5. This will output the IP address that the website is hosted on. Should be http://127.0.0.1:8000/ by defualt
+
+
+
+
+
 MIT License
 Copyright 2025 Joe Weibel
 
