@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Missile Money{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Welcome to Missile Money</h1>
+    <p>Your advanced financial tracking platform.</p>
+    
+    <div style="margin-top: 2rem;">
+        <button class="btn">Get Started</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Features</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <div style="padding: 1rem; background: var(--bg-tertiary); border-radius: 5px;">
+            <h3>🚀 Fast Tracking</h3>
+            <p>Track your finances at missile speed.</p>
+        </div>
+        <div style="padding: 1rem; background: var(--bg-tertiary); border-radius: 5px;">
+            <h3>📊 Analytics</h3>
+            <p>Detailed insights into your spending.</p>
+        </div>
+        <div style="padding: 1rem; background: var(--bg-tertiary); border-radius: 5px;">
+            <h3>🔒 Secure</h3>
+            <p>Bank-level security for your data.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
