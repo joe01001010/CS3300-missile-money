@@ -24,6 +24,7 @@ Redirects to dashboard after login 302
 Redirects to home page after logout 302
 
 
+# Usage instructions for developers
 
 ### 1. Change directories into the project directory
 cd CS3300-missile-money
