@@ -145,9 +145,24 @@
                 <ul class="nav-links">
                     <li><a href="{% url 'home' %}">Home</a></li>
                     <li><a href="{% url 'about' %}">About</a></li>
-                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'profile' %}">Profile</a></li>
+                    {% endif %}
                 </ul>
-                <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+                    {% if user.is_authenticated %}
+                        <span style="color: var(--text-secondary);">Welcome, {{ user.username }}!</span>
+                        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn" style="background-color: #ff4444; padding: 0.5rem 1rem;">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn" style="padding: 0.5rem 1rem;">Login</a>
+                        <a href="{% url 'register' %}" class="btn" style="padding: 0.5rem 1rem;">Sign Up</a>
+                    {% endif %}
+                </div>
             </nav>
         </div>
     </header>
