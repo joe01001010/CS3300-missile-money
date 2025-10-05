@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - Missile Money{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 2rem auto;">
+    <h2 style="text-align: center; margin-bottom: 1.5rem;">🚀 Create Account</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="card" style="background-color: {% if message.tags == 'success' %}var(--accent-secondary){% else %}#ff4444{% endif %}; margin-bottom: 1rem;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div style="margin-bottom: 1rem;">
+            <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.5rem;">
+                {{ field.label }}:
+            </label>
+            {{ field }}
+            {% if field.help_text %}
+                <small style="color: var(--text-secondary);">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+                <div style="color: #ff4444; font-size: 0.9rem; margin-top: 0.25rem;">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn" style="width: 100%;">Create Account</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <p>Already have an account? <a href="{% url 'login' %}" style="color: var(--accent-primary);">Login here</a></p>
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+    }
+
+    .helptext {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
