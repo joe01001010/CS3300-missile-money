@@ -11,13 +11,16 @@ class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
     redirect_authenticated_user = True
     
+    
     def form_valid(self, form):
         messages.success(self.request, f'Welcome back, {form.get_user().username}!')
         return super().form_valid(form)
     
+
     def form_invalid(self, form):
         messages.error(self.request, 'Invalid username or password. Please try again.')
         return super().form_invalid(form)
+
 
 def register(request):
     if request.method == 'POST':
@@ -36,9 +39,11 @@ def register(request):
     
     return render(request, 'registration/register.html', {'form': form})
 
+
 @login_required
 def profile(request):
     return render(request, 'registration/profile.html')
+
 
 def custom_logout(request):
     logout(request)
