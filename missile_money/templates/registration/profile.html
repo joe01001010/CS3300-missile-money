@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - Missile Money{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>👤 User Profile</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+        <div>
+            <h3>Account Information</h3>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email|default:"Not set" }}</p>
+            <p><strong>Member since:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+        </div>
+        
+        <div>
+            <h3>Quick Actions</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{% url 'password_change' %}" class="btn" style="text-align: center;">Change Password</a>
+                <a href="{% url 'logout' %}" class="btn" style="background-color: #ff4444; text-align: center;">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h2>Your Financial Summary</h2>
+    <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+        Financial data will appear here once you start using Missile Money features.
+    </p>
+</div>
+{% endblock %}
