@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]  # Current stable versions
+        python-version: ["3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -25,4 +25,4 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
-        python manage.py test
+        python missile_money/manage.py test
