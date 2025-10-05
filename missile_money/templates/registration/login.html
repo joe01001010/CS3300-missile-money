@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Missile Money{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 2rem auto;">
+    <h2 style="text-align: center; margin-bottom: 1.5rem;">🚀 Login</h2>
+    
+    {% if form.errors %}
+    <div class="card" style="background-color: #ff4444; color: white; margin-bottom: 1rem;">
+        Your username and password didn't match. Please try again.
+    </div>
+    {% endif %}
+
+    {% if next %}
+        {% if user.is_authenticated %}
+        <div class="card" style="background-color: #ffaa00; margin-bottom: 1rem;">
+            Your account doesn't have access to this page.
+        </div>
+        {% else %}
+        <div class="card" style="background-color: var(--bg-tertiary); margin-bottom: 1rem;">
+            Please login to see this page.
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="id_username" style="display: block; margin-bottom: 0.5rem;">Username:</label>
+            <input type="text" name="username" id="id_username" required style="width: 100%; padding: 0.75rem; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 5px; color: var(--text-primary);">
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label for="id_password" style="display: block; margin-bottom: 0.5rem;">Password:</label>
+            <input type="password" name="password" id="id_password" required style="width: 100%; padding: 0.75rem; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 5px; color: var(--text-primary);">
+        </div>
+    
+        <button type="submit" class="btn" style="width: 100%;">Login</button>
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem;">
+        <p>Don't have an account? <a href="{% url 'register' %}" style="color: var(--accent-primary);">Sign up here</a></p>
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
+    }
+</style>
+{% endblock %}
