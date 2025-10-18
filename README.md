@@ -16,6 +16,12 @@ Redirects to login 302, creates user in database
 Redirects to dashboard after login 302
 ### 7. Verify users can logout
 Redirects to home page after logout 302
+### 8. Verify auto logout feature works
+User will be autologged out after inactivity and redirected to the dashboard
+### 9. Verify feedback button works
+This test will create a test message using the feedback button and ensure the message is received
+### 10. Verify users can add income and expenses
+This test will verify the users can add income and expenses and the money is tracked properly by month and overall income
 
 
 # Usage instructions for developers
