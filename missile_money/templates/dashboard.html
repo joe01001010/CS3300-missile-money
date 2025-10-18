@@ -11,22 +11,28 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
     <div class="card">
         <h3>💰 Total Balance</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">$0.00</p>
+        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">
+            ${{ total_balance }}
+        </p>
         <small>Available funds</small>
     </div>
     
     <div class="card">
         <h3>📈 Monthly Income</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">$0.00</p>
+        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">
+            ${{ monthly_income }}
+        </p>
         <small>This month</small>
     </div>
     
     <div class="card">
         <h3>📉 Monthly Expenses</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #ff4444;">$0.00</p>
+        <p style="font-size: 2rem; font-weight: bold; color: #ff4444;">
+            ${{ monthly_expenses }}
+        </p>
         <small>This month</small>
     </div>
-    
+
     <div class="card">
         <h3>🎯 Savings Goal</h3>
         <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">0%</p>
@@ -36,17 +42,32 @@
 
 <div class="card" style="margin-top: 2rem;">
     <h2>Recent Transactions</h2>
-    <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-        No transactions yet. <a href="#" style="color: var(--accent-primary);">Add your first transaction</a>
-    </p>
+    {% if transactions %}
+        <ul>
+            {% for transaction in transactions %}
+                <li>
+                    {{ transaction.date }} - {{ transaction.description }} - 
+                    ${{ transaction.amount }} ({{ transaction.type }})
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            No transactions yet. 
+            <a href="{% url 'add_transaction' %}" style="color: var(--accent-primary);">
+                Add your first transaction
+            </a>
+        </p>
+    {% endif %}
 </div>
 
 <div class="card" style="margin-top: 1rem;">
     <h2>Quick Actions</h2>
     <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <button class="btn">Add Income</button>
-        <button class="btn" style="background-color: #ff4444;">Add Expense</button>
-        <button class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</button>
+        <a href="{% url 'add_transaction' %}?type=INCOME" class="btn">Add Income</a>
+        <a href="{% url 'add_transaction' %}?type=EXPENSE" class="btn" style="background-color: #ff4444;">Add Expense</a>
+        <a href="{% url 'view_reports' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</a>
     </div>
 </div>
+
 {% endblock %}

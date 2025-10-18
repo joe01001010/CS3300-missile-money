@@ -17,20 +17,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
-from django.core.mail import EmailMessage
-from django.shortcuts import redirect
-from django.contrib import messages
 from main import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
-    path('dashboard/', TemplateView.as_view(template_name='dashboard.html'), name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.custom_logout, name='logout'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
-    path("submit_feedback/", views.submit_feedback, name="submit_feedback"),
+    path('submit_feedback/', views.submit_feedback, name='submit_feedback'),
+    path('add_transaction/', views.add_transaction, name='add_transaction'),
+    path('reports/', views.view_reports, name='view_reports'),
 ]

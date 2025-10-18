@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core import mail
+from main.models import Transaction
 import datetime
 
 class AuthenticationTests(TestCase):
@@ -151,3 +152,44 @@ class AuthenticationTests(TestCase):
             self.assertIn('This is a test feedback message.', sent_email.body)
             self.assertIn('testuser@example.com', sent_email.body)
             self.assertEqual(sent_email.to, ['support@missile-money.com'])
+
+
+    def test_dashboard_transactions_by_month(self):
+        """
+        This test will ensure transactions are correctly grouped by month
+        and that income/expense logic is applied properly for the dashboard.
+        This will test the monthly totals and the overall total
+        """
+        self.client.login(username='joe_test_user', password='idklmao123123')
+
+        Transaction.objects.create(
+            user=self.user,
+            type='income',
+            amount=1000,
+            date=datetime.date(2025, 10, 1)
+        )
+        Transaction.objects.create(
+            user=self.user,
+            type='expense',
+            amount=200,
+            date=datetime.date(2025, 10, 15)
+        )
+        Transaction.objects.create(
+            user=self.user,
+            type='income',
+            amount=500,
+            date=datetime.date(2025, 9, 10)
+        )
+        Transaction.objects.create(
+            user=self.user,
+            type='expense',
+            amount=100,
+            date=datetime.date(2025, 9, 20)
+        )
+
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContains(response, '$800.00')
+        self.assertContains(response, '$400.00')
+        self.assertContains(response, '$1400.00')

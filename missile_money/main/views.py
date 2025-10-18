@@ -8,6 +8,10 @@ from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect
 from django.contrib import messages
+from .forms import TransactionForm
+from .models import Transaction
+from collections import defaultdict
+from django.utils.timezone import localtime
 
 
 class CustomLoginView(LoginView):
@@ -120,3 +124,55 @@ def submit_feedback(request):
 
     messages.error(request, "Invalid request method.")
     return redirect("home")
+
+
+@login_required
+def add_transaction(request):
+    if request.method == 'POST':
+        form = TransactionForm(request.POST)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.user = request.user
+            transaction.save()
+            messages.success(request, 'Transaction added successfully!')
+            return redirect('dashboard')
+    else:
+        form = TransactionForm()
+    return render(request, 'add_transaction.html', {'form': form})
+
+
+@login_required
+def dashboard(request):
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+    
+    total_balance = 0
+    for transaction in transactions:
+        if transaction.type == 'income':
+            total_balance += transaction.amount
+        elif transaction.type == 'expense':
+            total_balance -= transaction.amount
+    
+    monthly_income = sum(t.amount for t in transactions if t.type == 'income')
+    monthly_expenses = sum(t.amount for t in transactions if t.type == 'expense')
+    savings_goal = 0
+
+    transactions_by_month = defaultdict(list)
+    for t in transactions:
+        month_key = t.date.strftime("%Y-%m")
+        transactions_by_month[month_key].append(t)
+
+    transactions_by_month = dict(sorted(transactions_by_month.items(), reverse=True))
+
+    context = {
+        'transactions': transactions,
+        'transactions_by_month': transactions_by_month,
+        'total_balance': total_balance,
+        'monthly_income': monthly_income,
+        'monthly_expenses': monthly_expenses,
+        'savings_goal': savings_goal,
+    }
+    return render(request, 'dashboard.html', context)
+
+
+def view_reports(request):
+    return render(request, 'reports.html')
