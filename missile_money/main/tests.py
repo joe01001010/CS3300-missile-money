@@ -150,4 +150,4 @@ class AuthenticationTests(TestCase):
             self.assertIn('Missile Money - User Feedback', sent_email.subject)
             self.assertIn('This is a test feedback message.', sent_email.body)
             self.assertIn('testuser@example.com', sent_email.body)
-            self.assertEqual(sent_email.to, ['support@missilemoney.com'])
+            self.assertEqual(sent_email.to, ['support@missile-money.com'])
