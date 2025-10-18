@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core import mail
+from main.models import Transaction
 import datetime
 
 class AuthenticationTests(TestCase):
@@ -47,7 +48,8 @@ class AuthenticationTests(TestCase):
         There is no return value for this function
         """
         response = self.client.get(reverse('dashboard'))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response.url)
 
 
     def test_profile_page_requires_login(self):
@@ -151,3 +153,29 @@ class AuthenticationTests(TestCase):
             self.assertIn('This is a test feedback message.', sent_email.body)
             self.assertIn('testuser@example.com', sent_email.body)
             self.assertEqual(sent_email.to, ['support@missile-money.com'])
+
+
+    def test_dashboard_transactions_by_month(self):
+        """
+        This function will login with the test user
+        This function will create 2 transactions for 2 different months
+        This function will ensure the total amoutn of money is correct
+        This funciton will ensure the monthly totals are correct
+        """
+        self.client.login(username='joe_test_user', password='idklmao123123')
+
+        Transaction.objects.create(user=self.user, type='income', amount=1000, date=datetime.date(2025, 10, 1))
+        Transaction.objects.create(user=self.user, type='expense', amount=200, date=datetime.date(2025, 10, 15))
+        Transaction.objects.create(user=self.user, type='income', amount=500, date=datetime.date(2025, 9, 10))
+        Transaction.objects.create(user=self.user, type='expense', amount=100, date=datetime.date(2025, 9, 20))
+
+        response = self.client.get(reverse('dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+        total_balance = response.context['total_balance']
+        monthly_income = response.context['monthly_income']
+        monthly_expenses = response.context['monthly_expenses']
+
+        self.assertEqual(total_balance, 1200)
+        self.assertEqual(monthly_income, 1500)
+        self.assertEqual(monthly_expenses, 300)
