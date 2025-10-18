@@ -4,22 +4,16 @@ A Django-based web platform for the web application Missle Money.
 # Automated Testing
 ### 1. Verify home page loads
 This check will ensure the homepage returns a status code of 200
-
 ### 2. Verify about page loads
 This check will ensure the about returns a status code of 200
-
 ### 3. Verify dashboard page loads
 This check will ensure the dashboard returns a status code of 200
-
 ### 4. Verify the profile page requires a login
 Redirects when not logged in 302, accessible when logged in 200
-
 ### 5. Verify users can register
 Redirects to login 302, creates user in database
-
 ### 6. Verify users can login
 Redirects to dashboard after login 302
-
 ### 7. Verify users can logout
 Redirects to home page after logout 302
 
