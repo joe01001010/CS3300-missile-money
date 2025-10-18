@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from django.core.mail import EmailMessage
+from django.shortcuts import redirect
+from django.contrib import messages
 from main import views
 
 urlpatterns = [
@@ -29,4 +32,5 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
+    path("submit_feedback/", views.submit_feedback, name="submit_feedback"),
 ]

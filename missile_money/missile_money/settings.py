@@ -136,3 +136,14 @@ AUTO_LOGOUT_DELAY = 15 * 60
 SESSION_COOKIE_AGE = 15 * 60
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'jweibel@uccs.edu'
+#EMAIL_HOST_PASSWORD = 'your-app-password'
+#DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Above is for SMTP and production, Below is for console and development
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no-reply@missilemoney.com'

@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core import mail
 import datetime
 
 class AuthenticationTests(TestCase):
@@ -126,3 +127,27 @@ class AuthenticationTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('login'), response.url)
+
+
+    def test_feedback_submission_sends_email(self):
+        """
+        This function will use the locmem email backend for testing and store the email message in memory
+        This function will ensure the user is redirected back to the page they clicked the feedback button from
+        This also checks to make sure the test email was sent
+        This also checks to make sure the email message is formatted properly with subject, recipient, content
+        """
+        with self.settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend'):
+            feedback_data = {
+                'email': 'testuser@example.com',
+                'message': 'This is a test feedback message.'
+            }
+
+            response = self.client.post(reverse('submit_feedback'), data=feedback_data, follow=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(len(mail.outbox), 1)
+            sent_email = mail.outbox[0]
+
+            self.assertIn('Missile Money - User Feedback', sent_email.subject)
+            self.assertIn('This is a test feedback message.', sent_email.body)
+            self.assertIn('testuser@example.com', sent_email.body)
+            self.assertEqual(sent_email.to, ['support@missilemoney.com'])

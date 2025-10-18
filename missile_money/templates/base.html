@@ -133,6 +133,45 @@
         .btn:hover {
             background-color: var(--accent-secondary);
         }
+
+        /* Feedback Button */
+        .feedback-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .feedback-modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .feedback-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 10% auto;
+            padding: 2rem;
+            color: var(--text-primary);
+        }
+
+        .feedback-close {
+            float: right;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -204,7 +243,41 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
         });
     </script>
-
     {% block extra_js %}{% endblock %}
+    <!-- Feedback Button -->
+    <button id="feedback-btn" class="feedback-button">💬 Feedback</button>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="feedback-modal">
+    <div class="feedback-content">
+        <span id="feedback-close" class="feedback-close">&times;</span>
+        <h2>We Value Your Feedback</h2>
+        <p>Tell us what you think! Your message will go directly to our support team.</p>
+
+        <form id="feedback-form" method="post" action="{% url 'submit_feedback' %}">
+        {% csrf_token %}
+        <label for="email">Your Email (optional)</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com">
+
+        <label for="message">Your Message</label>
+        <textarea id="message" name="message" rows="5" required placeholder="Write your feedback here..."></textarea>
+
+        <button type="submit" class="btn">Send Feedback</button>
+        </form>
+    </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const feedbackBtn = document.getElementById('feedback-btn');
+          const feedbackModal = document.getElementById('feedback-modal');
+          const feedbackClose = document.getElementById('feedback-close');
+        
+          feedbackBtn.addEventListener('click', () => feedbackModal.style.display = 'block');
+          feedbackClose.addEventListener('click', () => feedbackModal.style.display = 'none');
+          window.addEventListener('click', (event) => {
+            if (event.target === feedbackModal) feedbackModal.style.display = 'none';
+          });
+        });
+    </script>
 </body>
 </html>
