@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core import mail
 from main.models import Transaction
+from decimal import Decimal
 import datetime
 
 class AuthenticationTests(TestCase):
@@ -179,3 +180,174 @@ class AuthenticationTests(TestCase):
         self.assertEqual(total_balance, 1200)
         self.assertEqual(monthly_income, 1500)
         self.assertEqual(monthly_expenses, 300)
+
+class TransactionEditDeleteTestCase(TestCase):
+    """
+    Test cases for editing and deleting transactions
+    """
+    
+    def setUp(self):
+        """
+        Set up test user and transactions before each test
+        """
+        # Create test user
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        
+        # Create test transactions
+        self.income_transaction = Transaction.objects.create(
+            user=self.user,
+            type='income',
+            amount=Decimal('2000.00'),
+            description='Test Income'
+        )
+        
+        self.expense_transaction = Transaction.objects.create(
+            user=self.user,
+            type='expense',
+            amount=Decimal('500.00'),
+            description='Test Expense'
+        )
+        
+        # Set up test client
+        self.client = Client()
+    
+    def test_edit_transaction_page_loads(self):
+        """
+        Test that the edit transaction page loads successfully
+        """
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(
+            reverse('edit_transaction', args=[self.income_transaction.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Edit Transaction')
+    
+    def test_edit_transaction_updates_data(self):
+        """
+        Test that editing a transaction actually updates the data
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Edit the transaction
+        response = self.client.post(
+            reverse('edit_transaction', args=[self.income_transaction.id]),
+            {
+                'type': 'income',
+                'amount': '3000.00',
+                'description': 'Updated Income'
+            }
+        )
+        
+        # Check redirect to dashboard
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify the transaction was updated
+        updated_transaction = Transaction.objects.get(id=self.income_transaction.id)
+        self.assertEqual(updated_transaction.amount, Decimal('3000.00'))
+        self.assertEqual(updated_transaction.description, 'Updated Income')
+    
+    def test_delete_transaction_page_loads(self):
+        """
+        Test that the delete confirmation page loads successfully
+        """
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(
+            reverse('delete_transaction', args=[self.expense_transaction.id])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Delete Transaction')
+    
+    def test_delete_transaction_removes_data(self):
+        """
+        Test that deleting a transaction actually removes it from the database
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Delete the transaction
+        response = self.client.post(
+            reverse('delete_transaction', args=[self.expense_transaction.id])
+        )
+        
+        # Check redirect to dashboard
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify the transaction was deleted
+        self.assertFalse(
+            Transaction.objects.filter(id=self.expense_transaction.id).exists()
+        )
+    
+    def test_user_cannot_edit_other_users_transaction(self):
+        """
+        Test that users can only edit their own transactions
+        """
+        # Create another user
+        other_user = User.objects.create_user(
+            username='otheruser',
+            password='otherpass123'
+        )
+        
+        # Login as the other user
+        self.client.login(username='otheruser', password='otherpass123')
+        
+        # Try to edit the first user's transaction
+        response = self.client.get(
+            reverse('edit_transaction', args=[self.income_transaction.id])
+        )
+        
+        # Should get 404 (not found)
+        self.assertEqual(response.status_code, 404)
+    
+    def test_user_cannot_delete_other_users_transaction(self):
+        """
+        Test that users can only delete their own transactions
+        """
+        # Create another user
+        other_user = User.objects.create_user(
+            username='otheruser',
+            password='otherpass123'
+        )
+        
+        # Login as the other user
+        self.client.login(username='otheruser', password='otherpass123')
+        
+        # Try to delete the first user's transaction
+        response = self.client.post(
+            reverse('delete_transaction', args=[self.income_transaction.id])
+        )
+        
+        # Should get 404 (not found)
+        self.assertEqual(response.status_code, 404)
+        
+        # Verify transaction still exists
+        self.assertTrue(
+            Transaction.objects.filter(id=self.income_transaction.id).exists()
+        )
+    
+    def test_login_required_for_edit(self):
+        """
+        Test that login is required to edit transactions
+        """
+        # Don't login
+        response = self.client.get(
+            reverse('edit_transaction', args=[self.income_transaction.id])
+        )
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+    
+    def test_login_required_for_delete(self):
+        """
+        Test that login is required to delete transactions
+        """
+        # Don't login
+        response = self.client.get(
+            reverse('delete_transaction', args=[self.expense_transaction.id])
+        )
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
