@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
@@ -176,3 +176,38 @@ def dashboard(request):
 
 def view_reports(request):
     return render(request, 'reports.html')
+
+@login_required
+def edit_transaction(request, transaction_id):
+    """
+    This function will edit an existing transaction
+    It will redirect to the dashboard after successful edit
+    There is no return value for this function
+    """
+    transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+    
+    if request.method == 'POST':
+        transaction.type = request.POST.get('type')
+        transaction.amount = request.POST.get('amount')
+        transaction.description = request.POST.get('description')
+        transaction.save()
+        messages.success(request, 'Transaction updated successfully!')
+        return redirect('dashboard')
+    
+    return render(request, 'edit_transaction.html', {'transaction': transaction})
+
+@login_required
+def delete_transaction(request, transaction_id):
+    """
+    This function will delete a transaction
+    It will redirect to the dashboard after successful deletion
+    There is no return value for this function
+    """
+    transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+    
+    if request.method == 'POST':
+        transaction.delete()
+        messages.success(request, 'Transaction deleted successfully!')
+        return redirect('dashboard')
+    
+    return render(request, 'delete_transaction.html', {'transaction': transaction})
