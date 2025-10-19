@@ -43,17 +43,26 @@
 <div class="card" style="margin-top: 2rem;">
     <h2>Recent Transactions</h2>
     {% if transactions %}
-        <ul>
+        <ul style="list-style: none; padding: 0;">
             {% for transaction in transactions %}
-                <li>
-                    {{ transaction.date }} - {{ transaction.description }} - 
-                    ${{ transaction.amount }} ({{ transaction.type }})
+                <li style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--bg-tertiary); margin-bottom: 0.5rem;">
+                    <div>
+                        <strong>{{ transaction.date }}</strong> - {{ transaction.description|default:"No description" }} -
+                        <span style="font-weight: bold; color: {% if transaction.type == 'income' %}var(--accent-primary){% else %}#ff4444{% endif %};">
+                            ${{ transaction.amount }}
+                        </span>
+                        ({{ transaction.get_type_display }})
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="{% url 'edit_transaction' transaction.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Edit</a>
+                        <a href="{% url 'delete_transaction' transaction.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #ff4444;">Delete</a>
+                    </div>
                 </li>
             {% endfor %}
         </ul>
     {% else %}
         <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-            No transactions yet. 
+            No transactions yet.
             <a href="{% url 'add_transaction' %}" style="color: var(--accent-primary);">
                 Add your first transaction
             </a>

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>💱 Currency Converter</h1>
+    <p class="lead">Convert between different currencies with live exchange rates</p>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <form method="post" class="card p-4">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Amount:</label>
+                    <input type="number" 
+                           name="amount" 
+                           id="amount"
+                           step="0.01" 
+                           class="form-control" 
+                           placeholder="Enter amount"
+                           required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="from_currency" class="form-label">From Currency:</label>
+                    <select name="from_currency" id="from_currency" class="form-select" required>
+                        <option value="">Select currency...</option>
+                        {% for code, name in currencies %}
+                            <option value="{{ code }}">{{ code }} - {{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="to_currency" class="form-label">To Currency:</label>
+                    <select name="to_currency" id="to_currency" class="form-select" required>
+                        <option value="">Select currency...</option>
+                        {% for code, name in currencies %}
+                            <option value="{{ code }}">{{ code }} - {{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100">Convert</button>
+            </form>
+        </div>
+        
+        <div class="col-md-6">
+            {% if result %}
+                <div class="alert alert-success">
+                    <h3 class="alert-heading">Conversion Result</h3>
+                    <hr>
+                    <p class="mb-0">
+                        <strong>{{ result.amount }} {{ result.from_currency }}</strong> = 
+                        <strong>{{ result.converted_amount }} {{ result.to_currency }}</strong>
+                    </p>
+                </div>
+            {% endif %}
+            
+            {% if error %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+            {% endif %}
+            
+            {% if not result and not error %}
+                <div class="card p-4">
+                    <h5>How to use:</h5>
+                    <ol>
+                        <li>Enter the amount you want to convert</li>
+                        <li>Select the currency you're converting from</li>
+                        <li>Select the currency you're converting to</li>
+                        <li>Click "Convert" to see the result</li>
+                    </ol>
+                    <p class="text-muted mb-0">Exchange rates are updated hourly.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
