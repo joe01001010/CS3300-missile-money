@@ -31,5 +31,7 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('submit_feedback/', views.submit_feedback, name='submit_feedback'),
     path('add_transaction/', views.add_transaction, name='add_transaction'),
+    path('transaction/edit/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
+    path('transaction/delete/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('reports/', views.view_reports, name='view_reports'),
 ]
