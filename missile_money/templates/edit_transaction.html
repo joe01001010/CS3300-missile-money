@@ -9,9 +9,16 @@
         
         <div class="mb-3">
             <label for="type" class="form-label">Type:</label>
-            <select name="type" id="type" class="form-select" required>
+            <select name="type" id="type" class="form-select" required onchange="updateCategories()">
                 <option value="income" {% if transaction.type == 'income' %}selected{% endif %}>Income</option>
                 <option value="expense" {% if transaction.type == 'expense' %}selected{% endif %}>Expense</option>
+            </select>
+        </div>
+        
+        <div class="mb-3">
+            <label for="category" class="form-label">Category:</label>
+            <select name="category" id="category" class="form-select">
+                <option value="">Select a category</option>
             </select>
         </div>
         
@@ -41,4 +48,48 @@
         </div>
     </form>
 </div>
+
+<script>
+const incomeCategories = [
+    ['job', 'Job'],
+    ['investments', 'Investments'],
+    ['reimbursements', 'Reimbursements (non-taxable)'],
+    ['other_income', 'Other']
+];
+
+const expenseCategories = [
+    ['groceries', 'Groceries'],
+    ['utilities_housing', 'Utilities/Housing'],
+    ['recreation', 'Recreation'],
+    ['other_expense', 'Other']
+];
+
+const currentCategory = '{{ transaction.category|default:"" }}';
+
+function updateCategories() {
+    const typeSelect = document.getElementById('type');
+    const categorySelect = document.getElementById('category');
+    const selectedType = typeSelect.value;
+    
+    // Clear existing options
+    categorySelect.innerHTML = '<option value="">Select a category</option>';
+    
+    // Add appropriate categories based on type
+    const categories = selectedType === 'income' ? incomeCategories : expenseCategories;
+    categories.forEach(([value, label]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        if (value === currentCategory) {
+            option.selected = true;
+        }
+        categorySelect.appendChild(option);
+    });
+}
+
+// Initialize categories on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCategories();
+});
+</script>
 {% endblock %}
