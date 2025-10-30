@@ -52,6 +52,9 @@
                             ${{ transaction.amount }}
                         </span>
                         ({{ transaction.get_type_display }})
+                        {% if transaction.category %}
+                            <span style="color: var(--text-secondary); font-size: 0.9rem;">- {{ transaction.get_category_display }}</span>
+                        {% endif %}
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
                         <a href="{% url 'edit_transaction' transaction.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Edit</a>
@@ -73,8 +76,8 @@
 <div class="card" style="margin-top: 1rem;">
     <h2>Quick Actions</h2>
     <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <a href="{% url 'add_transaction' %}?type=INCOME" class="btn">Add Income</a>
-        <a href="{% url 'add_transaction' %}?type=EXPENSE" class="btn" style="background-color: #ff4444;">Add Expense</a>
+        <a href="{% url 'add_transaction' %}?type=income" class="btn">Add Income</a>
+        <a href="{% url 'add_transaction' %}?type=expense" class="btn" style="background-color: #ff4444;">Add Expense</a>
         <a href="{% url 'view_reports' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</a>
     </div>
 </div>

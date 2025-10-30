@@ -137,7 +137,9 @@ def add_transaction(request):
             messages.success(request, 'Transaction added successfully!')
             return redirect('dashboard')
     else:
-        form = TransactionForm()
+        # Check for initial type from URL parameter
+        initial_type = request.GET.get('type', '').lower()
+        form = TransactionForm(initial={'type': initial_type} if initial_type else {})
     return render(request, 'add_transaction.html', {'form': form})
 
 
@@ -188,6 +190,7 @@ def edit_transaction(request, transaction_id):
     
     if request.method == 'POST':
         transaction.type = request.POST.get('type')
+        transaction.category = request.POST.get('category', '')
         transaction.amount = request.POST.get('amount')
         transaction.description = request.POST.get('description')
         transaction.save()
