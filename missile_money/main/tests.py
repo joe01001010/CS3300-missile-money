@@ -181,6 +181,7 @@ class AuthenticationTests(TestCase):
         self.assertEqual(monthly_income, 1500)
         self.assertEqual(monthly_expenses, 300)
 
+
 class TransactionEditDeleteTestCase(TestCase):
     """
     Test cases for editing and deleting transactions
@@ -214,6 +215,7 @@ class TransactionEditDeleteTestCase(TestCase):
         # Set up test client
         self.client = Client()
     
+
     def test_edit_transaction_page_loads(self):
         """
         Test that the edit transaction page loads successfully
@@ -225,6 +227,7 @@ class TransactionEditDeleteTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Edit Transaction')
     
+
     def test_edit_transaction_updates_data(self):
         """
         Test that editing a transaction actually updates the data
@@ -249,6 +252,7 @@ class TransactionEditDeleteTestCase(TestCase):
         self.assertEqual(updated_transaction.amount, Decimal('3000.00'))
         self.assertEqual(updated_transaction.description, 'Updated Income')
     
+
     def test_delete_transaction_page_loads(self):
         """
         Test that the delete confirmation page loads successfully
@@ -260,6 +264,7 @@ class TransactionEditDeleteTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Delete Transaction')
     
+
     def test_delete_transaction_removes_data(self):
         """
         Test that deleting a transaction actually removes it from the database
@@ -279,6 +284,7 @@ class TransactionEditDeleteTestCase(TestCase):
             Transaction.objects.filter(id=self.expense_transaction.id).exists()
         )
     
+
     def test_user_cannot_edit_other_users_transaction(self):
         """
         Test that users can only edit their own transactions
@@ -300,6 +306,7 @@ class TransactionEditDeleteTestCase(TestCase):
         # Should get 404 (not found)
         self.assertEqual(response.status_code, 404)
     
+
     def test_user_cannot_delete_other_users_transaction(self):
         """
         Test that users can only delete their own transactions
@@ -326,6 +333,7 @@ class TransactionEditDeleteTestCase(TestCase):
             Transaction.objects.filter(id=self.income_transaction.id).exists()
         )
     
+
     def test_login_required_for_edit(self):
         """
         Test that login is required to edit transactions
@@ -339,6 +347,7 @@ class TransactionEditDeleteTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/login/', response.url)
     
+
     def test_login_required_for_delete(self):
         """
         Test that login is required to delete transactions
@@ -351,3 +360,219 @@ class TransactionEditDeleteTestCase(TestCase):
         # Should redirect to login
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/login/', response.url)
+
+
+class TransactionCategoryTestCase(TestCase):
+    """
+    Test cases for transaction categorization functionality
+    """
+    def setUp(self):
+        """
+        Set up test user before each test
+        """
+        # Create test user
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        
+        # Set up test client
+        self.client = Client()
+    
+
+    def test_add_income_transaction_with_category(self):
+        """
+        Test that users can add an income transaction with a category
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Add an income transaction with a category
+        response = self.client.post(reverse('add_transaction'), {
+            'type': 'income',
+            'category': 'job',
+            'amount': '3000.00',
+            'description': 'Monthly Salary'
+        })
+        
+        # Check redirect to dashboard
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/dashboard/', response.url)
+        
+        # Verify the transaction was created with the category
+        transaction = Transaction.objects.filter(user=self.user).first()
+        self.assertIsNotNone(transaction)
+        self.assertEqual(transaction.type, 'income')
+        self.assertEqual(transaction.category, 'job')
+        self.assertEqual(transaction.amount, Decimal('3000.00'))
+        self.assertEqual(transaction.description, 'Monthly Salary')
+    
+
+    def test_add_expense_transaction_with_category(self):
+        """
+        Test that users can add an expense transaction with a category
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Add an expense transaction with a category
+        response = self.client.post(reverse('add_transaction'), {
+            'type': 'expense',
+            'category': 'groceries',
+            'amount': '150.50',
+            'description': 'Weekly Groceries'
+        })
+        
+        # Check redirect to dashboard
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify the transaction was created with the category
+        transaction = Transaction.objects.filter(user=self.user).first()
+        self.assertIsNotNone(transaction)
+        self.assertEqual(transaction.type, 'expense')
+        self.assertEqual(transaction.category, 'groceries')
+        self.assertEqual(transaction.amount, Decimal('150.50'))
+        self.assertEqual(transaction.description, 'Weekly Groceries')
+    
+
+    def test_edit_transaction_updates_category(self):
+        """
+        Test that editing a transaction can update its category
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Create a transaction
+        transaction = Transaction.objects.create(
+            user=self.user,
+            type='income',
+            category='job',
+            amount=Decimal('2000.00'),
+            description='Original Description'
+        )
+        
+        # Edit the transaction to change category
+        response = self.client.post(
+            reverse('edit_transaction', args=[transaction.id]),
+            {
+                'type': 'income',
+                'category': 'investments',
+                'amount': '2000.00',
+                'description': 'Investment Income'
+            }
+        )
+        
+        # Check redirect to dashboard
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify the category was updated
+        updated_transaction = Transaction.objects.get(id=transaction.id)
+        self.assertEqual(updated_transaction.category, 'investments')
+        self.assertEqual(updated_transaction.description, 'Investment Income')
+    
+
+    def test_add_transaction_without_category(self):
+        """
+        Test that users can add a transaction without selecting a category
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Add a transaction without a category
+        response = self.client.post(reverse('add_transaction'), {
+            'type': 'income',
+            'category': '',
+            'amount': '1000.00',
+            'description': 'Cash Gift'
+        })
+        
+        # Check redirect to dashboard
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify the transaction was created without a category
+        transaction = Transaction.objects.filter(user=self.user).first()
+        self.assertIsNotNone(transaction)
+        self.assertEqual(transaction.category, '')
+    
+
+    def test_category_display_method(self):
+        """
+        Test the get_category_display method returns correct display names
+        """
+        # Create income transaction with category
+        income_transaction = Transaction.objects.create(
+            user=self.user,
+            type='income',
+            category='reimbursements',
+            amount=Decimal('500.00'),
+            description='Travel Reimbursement'
+        )
+        
+        # Verify display name
+        self.assertEqual(income_transaction.get_category_display(), 'Reimbursements (non-taxable)')
+        
+        # Create expense transaction with category
+        expense_transaction = Transaction.objects.create(
+            user=self.user,
+            type='expense',
+            category='utilities_housing',
+            amount=Decimal('800.00'),
+            description='Monthly Rent'
+        )
+        
+        # Verify display name
+        self.assertEqual(expense_transaction.get_category_display(), 'Utilities/Housing')
+        
+        # Create transaction without category
+        no_category = Transaction.objects.create(
+            user=self.user,
+            type='income',
+            category='',
+            amount=Decimal('100.00'),
+            description='Misc Income'
+        )
+        
+        # Verify display name for no category
+        self.assertEqual(no_category.get_category_display(), 'Uncategorized')
+    
+
+    def test_all_income_categories_save_correctly(self):
+        """
+        Test that all income categories can be saved correctly
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        income_categories = ['job', 'investments', 'reimbursements', 'other_income']
+        
+        for category in income_categories:
+            response = self.client.post(reverse('add_transaction'), {
+                'type': 'income',
+                'category': category,
+                'amount': '100.00',
+                'description': f'Test {category}'
+            })
+            self.assertEqual(response.status_code, 302)
+            
+            transaction = Transaction.objects.filter(user=self.user, category=category).first()
+            self.assertIsNotNone(transaction)
+            self.assertEqual(transaction.category, category)
+            self.assertEqual(transaction.type, 'income')
+    
+    
+    def test_all_expense_categories_save_correctly(self):
+        """
+        Test that all expense categories can be saved correctly
+        """
+        self.client.login(username='testuser', password='testpass123')
+        
+        expense_categories = ['groceries', 'utilities_housing', 'recreation', 'other_expense']
+        
+        for category in expense_categories:
+            response = self.client.post(reverse('add_transaction'), {
+                'type': 'expense',
+                'category': category,
+                'amount': '50.00',
+                'description': f'Test {category}'
+            })
+            self.assertEqual(response.status_code, 302)
+            
+            transaction = Transaction.objects.filter(user=self.user, category=category).first()
+            self.assertIsNotNone(transaction)
+            self.assertEqual(transaction.category, category)
+            self.assertEqual(transaction.type, 'expense')
