@@ -1,3 +1,6 @@
+import json
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -12,6 +15,53 @@ from .forms import TransactionForm
 from .models import Transaction
 from collections import defaultdict
 from django.utils.timezone import localtime
+from .services.financial_advice_bot import generate_financial_advice
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+from django.http import JsonResponse
+
+
+logger = logging.getLogger(__name__)
+
+@require_POST
+@csrf_protect
+def finance_bot_chat(request):
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+
+    if payload.get("reset"):
+        request.session["finance_bot_history"] = []
+        return JsonResponse({"status": "reset"})
+
+    user_text = (payload.get("message") or "").strip()
+    if not user_text:
+        return JsonResponse({"error": "Please enter a message."}, status=400)
+
+    history = request.session.get("finance_bot_history", [])
+    try:
+        reply = generate_financial_advice(user_text, history)
+    except FileNotFoundError as exc:
+        logger.exception("Financial advice model missing")
+        return JsonResponse({"error": str(exc)}, status=500)
+    except RuntimeError as exc:
+        logger.exception("Financial advice model failed to load")
+        return JsonResponse({"error": str(exc)}, status=500)
+    except Exception as exc:  # pragma: no cover - safeguard
+        logger.exception("Financial advice model error")
+        return JsonResponse(
+            {"error": "Unexpected error generating financial advice."},
+            status=500,
+        )
+
+    history.extend([
+        {"role": "user", "content": user_text},
+        {"role": "assistant", "content": reply},
+    ])
+    request.session["finance_bot_history"] = history[-12:]
+
+    return JsonResponse({"reply": reply})
 
 
 class CustomLoginView(LoginView):

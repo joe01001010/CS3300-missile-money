@@ -1,8 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}Missile Money{% endblock %}</title>
     
     <!-- Dark Mode CSS -->
@@ -174,6 +176,8 @@
         }
     </style>
     
+    <link rel="stylesheet" href="{% static 'css/finance_bot.css' %}">
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -244,6 +248,37 @@
         });
     </script>
     {% block extra_js %}{% endblock %}
+
+    <button
+        id="finance-bot-toggle"
+        class="finance-bot-toggle"
+        type="button"
+        aria-controls="finance-bot-panel"
+        aria-expanded="false"
+    >
+        Ask Missile Money
+    </button>
+    <div id="finance-bot-panel" class="finance-bot-panel" aria-hidden="true" tabindex="-1">
+        <div class="finance-bot-header">
+            <div>
+                <h3>Missile Money Coach</h3>
+                <p>Your personal finance learning assistant.</p>
+                <p>***** Educational purposes only *****</p>
+            </div>
+            <button id="finance-bot-close" type="button" aria-label="Close chat">&times;</button>
+        </div>
+        <div id="finance-bot-messages" class="finance-bot-messages">
+            <div class="finance-bot-msg finance-bot-assistant">
+                Ask about budgeting, saving, or debt management and I'll share helpful tips.
+            </div>
+        </div>
+        <form id="finance-bot-form" class="finance-bot-form" autocomplete="off">
+            <input type="text" name="message" placeholder="Type your question..." required>
+            <button type="submit">Send</button>
+        </form>
+        <button id="finance-bot-reset" type="button" class="finance-bot-reset">Reset conversation</button>
+    </div>
+
     <!-- Feedback Button -->
     <button id="feedback-btn" class="feedback-button">💬 Feedback</button>
 
@@ -279,5 +314,6 @@
           });
         });
     </script>
+    <script src="{% static 'js/finance_bot.js' %}" defer></script>
 </body>
 </html>
