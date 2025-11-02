@@ -1,1 +1,2 @@
+missile_money/models/* filter=lfs diff=lfs merge=lfs -text
 FinancialAdvice-Qwen2.5-7B.gguf !text !filter !merge !diff
