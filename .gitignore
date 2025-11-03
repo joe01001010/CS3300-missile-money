@@ -70,3 +70,6 @@ htmlcov/
 *.key
 *.cert
 secrets.yml
+
+# Financial advisor model
+*.gguf

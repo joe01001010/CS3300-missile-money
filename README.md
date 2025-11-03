@@ -67,6 +67,13 @@ See our [Project Architecture Diagram](docs/architecture.md) for detailed system
 
 ## 🚀 Getting Started
 
+### Using the financial advisor
+This is an optional addition that is too large to store in basic github.
+We have to add this manually after we pull the base code.
+- cd CS3300-missile-money
+- curl -OutFile .\missile_money\FinancialAdvice-Qwen2.5-7B.Q4_K_M.gguf https://huggingface.co/nguyentd/FinancialAdvice-Qwen2.5-7B.gguf/resolve/main/FinancialAdvice-Qwen2.5-7B.Q4_K_M.gguf
+
+
 ### Prerequisites
 
 - Python 3.10 or higher
