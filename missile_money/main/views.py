@@ -214,3 +214,6 @@ def delete_transaction(request, transaction_id):
         return redirect('dashboard')
     
     return render(request, 'delete_transaction.html', {'transaction': transaction})
+
+def Bill_Split(request, transaction_id):
+    return render(request, 'delete_transaction.html')
