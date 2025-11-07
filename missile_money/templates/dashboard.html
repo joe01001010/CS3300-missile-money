@@ -59,6 +59,7 @@
                     <div style="display: flex; gap: 0.5rem;">
                         <a href="{% url 'edit_transaction' transaction.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Edit</a>
                         <a href="{% url 'delete_transaction' transaction.id %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background-color: #ff4444;">Delete</a>
+                        <a href="{% url 'Bill_Split' transaction.id %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">Bill Splitting</a>
                     </div>
                 </li>
             {% endfor %}
@@ -79,7 +80,7 @@
         <a href="{% url 'add_transaction' %}?type=income" class="btn">Add Income</a>
         <a href="{% url 'add_transaction' %}?type=expense" class="btn" style="background-color: #ff4444;">Add Expense</a>
         <a href="{% url 'view_reports' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</a>
-        <a href="{% url 'Bill_Split' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">Bill Splitting</a>
+        
 
     </div>
 </div>
