@@ -243,7 +243,7 @@ def Bill_Split(request, transaction_id):
 
                 if not participants:
                     messages.error(request, "Select at least one participant.")
-                    return render(request, 'Bill_Splitting.html', {'form': form, 'transaction': tx})
+                    return render(request, 'Bill_Split.html', {'form': form, 'transaction': tx})
 
                 # Create the bill from this transaction
                 bill = Bill.objects.create(
@@ -269,4 +269,4 @@ def Bill_Split(request, transaction_id):
         else:
             form = BillSplitForm()
 
-        return render(request, 'Bill_Splitting.html', {'form': form, 'transaction': tx})
+        return render(request, 'Bill_Split.html', {'form': form, 'transaction': tx})

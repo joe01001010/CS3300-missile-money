@@ -35,7 +35,7 @@ urlpatterns = [
     path('transaction/edit/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
     path('transaction/delete/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('reports/', views.view_reports, name='view_reports'),
-    path('Bill_Split/', views.Bill_Split, name='Bill_Splitting'),
+    path('Bill_Split/', views.Bill_Split, name='Bill_Split'),
     #path('transactions/<int:transaction_id>/split/', views.Bill_Split, name='bill_split'),
 
 
