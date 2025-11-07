@@ -12,7 +12,7 @@ from .forms import TransactionForm
 from .models import Transaction
 from collections import defaultdict
 from django.utils.timezone import localtime
-
+from django.db.models import Q
 
 class CustomLoginView(LoginView):
     """
@@ -176,8 +176,58 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 
+@login_required
 def view_reports(request):
-    return render(request, 'reports.html')
+    """
+    Render the reports page with optional filtering and search on the user's transactions.
+    Users can filter by category, transaction type, date range, and a search term via GET params.
+    """
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    # Extract query parameters for filtering
+    category = request.GET.get('category')
+    tx_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search_query = request.GET.get('q')
+
+    # Apply filters as needed
+    if category:
+        transactions = transactions.filter(category=category)
+    if tx_type in ['income', 'expense']:
+        transactions = transactions.filter(type=tx_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+    if search_query:
+        transactions = transactions.filter(
+            Q(description__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+
+    # Calculate summary totals
+    total_income = sum(t.amount for t in transactions if t.type == 'income')
+    total_expenses = sum(t.amount for t in transactions if t.type == 'expense')
+    net_total = total_income - total_expenses
+
+    # Combine category choices for dropdown
+    categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
+
+    context = {
+        'transactions': transactions,
+        'categories': categories,
+        'selected_category': category,
+        'selected_type': tx_type,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'net_total': net_total,
+    }
+    return render(request, 'reports.html', context)
+    
 
 @login_required
 def edit_transaction(request, transaction_id):
@@ -214,3 +264,40 @@ def delete_transaction(request, transaction_id):
         return redirect('dashboard')
     
     return render(request, 'delete_transaction.html', {'transaction': transaction})
+
+@login_required
+def transaction_history(request):
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    category = request.GET.get('category')
+    tx_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search_query = request.GET.get('q')
+
+    if category:
+        transactions = transactions.filter(category=category)
+    if tx_type in ['income', 'expense']:
+        transactions = transactions.filter(type=tx_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+    if search_query:
+        transactions = transactions.filter(
+            Q(description__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+
+    categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
+
+    context = {
+        'transactions': transactions,
+        'categories': categories,
+        'selected_category': category,
+        'selected_type': tx_type,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+    }
+    return render(request, 'transaction_history.html', context)
