@@ -8,10 +8,12 @@ from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import TransactionForm
-from .models import Transaction
+from .forms import TransactionForm, BillSplitForm
+from .models import Transaction, Bill, BillShare
 from collections import defaultdict
 from django.utils.timezone import localtime
+
+
 
 
 class CustomLoginView(LoginView):
@@ -215,5 +217,56 @@ def delete_transaction(request, transaction_id):
     
     return render(request, 'delete_transaction.html', {'transaction': transaction})
 
+
 def Bill_Split(request, transaction_id):
-    return render(request, 'delete_transaction.html')
+        """
+        Split an existing EXPENSE Transaction into a Bill with equal shares.
+        - Only the owner of the transaction can split it.
+        - Creates Bill + BillShare rows.
+        """
+        tx = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+
+        if tx.type != 'expense':
+            messages.error(request, "Only expense transactions can be split.")
+            return redirect('dashboard')
+
+        if request.method == 'POST':
+            form = BillSplitForm(request.POST)
+            if form.is_valid():
+                participants = list(form.cleaned_data['participants'])
+                include_payer = form.cleaned_data['include_payer']
+                mark_my_share_paid = form.cleaned_data['mark_my_share_paid']
+
+                # Ensure payer is included if checkbox checked
+                if include_payer and request.user not in participants:
+                    participants.append(request.user)
+
+                if not participants:
+                    messages.error(request, "Select at least one participant.")
+                    return render(request, 'Bill_Splitting.html', {'form': form, 'transaction': tx})
+
+                # Create the bill from this transaction
+                bill = Bill.objects.create(
+                    title=tx.description or "Split of Transaction #{tx.id}",
+                    total_amount=tx.amount,
+                    created_by=request.user,
+                )
+
+                # Equal split
+                share_amount = tx.amount / len(participants)
+
+                for u in participants:
+                    paid = (u == request.user and mark_my_share_paid)
+                    BillShare.objects.create(
+                        bill=bill,
+                        user=u,
+                        amount_owed=share_amount,
+                        paid=paid
+                    )
+
+                messages.success(request, "Bill created and split successfully.")
+                return redirect('view_bills')  # make sure you have this page
+        else:
+            form = BillSplitForm()
+
+        return render(request, 'Bill_Splitting.html', {'form': form, 'transaction': tx})

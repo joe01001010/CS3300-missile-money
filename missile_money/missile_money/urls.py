@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+
 from main import views
 
 urlpatterns = [
@@ -34,5 +35,8 @@ urlpatterns = [
     path('transaction/edit/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
     path('transaction/delete/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('reports/', views.view_reports, name='view_reports'),
-    path('reports/', views.view_reports, name='Bill_Splitting'),
+    path('Bill_Split/', views.Bill_Split, name='Bill_Splitting'),
+    #path('transactions/<int:transaction_id>/split/', views.Bill_Split, name='bill_split'),
+
+
 ]
