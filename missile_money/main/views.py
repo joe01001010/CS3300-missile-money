@@ -14,6 +14,7 @@ from collections import defaultdict
 from django.utils.timezone import localtime
 from django.db.models import Q
 
+
 class CustomLoginView(LoginView):
     """
     This class will handle the login functionality
@@ -227,7 +228,7 @@ def view_reports(request):
         'net_total': net_total,
     }
     return render(request, 'reports.html', context)
-    
+
 
 @login_required
 def edit_transaction(request, transaction_id):
@@ -249,6 +250,7 @@ def edit_transaction(request, transaction_id):
     
     return render(request, 'edit_transaction.html', {'transaction': transaction})
 
+
 @login_required
 def delete_transaction(request, transaction_id):
     """
@@ -265,39 +267,8 @@ def delete_transaction(request, transaction_id):
     
     return render(request, 'delete_transaction.html', {'transaction': transaction})
 
+
 @login_required
 def transaction_history(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-
-    category = request.GET.get('category')
-    tx_type = request.GET.get('type')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    search_query = request.GET.get('q')
-
-    if category:
-        transactions = transactions.filter(category=category)
-    if tx_type in ['income', 'expense']:
-        transactions = transactions.filter(type=tx_type)
-    if start_date:
-        transactions = transactions.filter(date__gte=start_date)
-    if end_date:
-        transactions = transactions.filter(date__lte=end_date)
-    if search_query:
-        transactions = transactions.filter(
-            Q(description__icontains=search_query) |
-            Q(category__icontains=search_query)
-        )
-
-    categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
-
-    context = {
-        'transactions': transactions,
-        'categories': categories,
-        'selected_category': category,
-        'selected_type': tx_type,
-        'start_date': start_date,
-        'end_date': end_date,
-        'search_query': search_query,
-    }
-    return render(request, 'transaction_history.html', context)
+    return render(request, 'reports.html', {'transactions': transactions})

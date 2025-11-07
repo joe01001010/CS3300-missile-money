@@ -34,5 +34,4 @@ urlpatterns = [
     path('transaction/edit/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
     path('transaction/delete/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('reports/', views.view_reports, name='view_reports'),
-    path('transactions/', views.transaction_history, name='transaction_history'),
 ]
