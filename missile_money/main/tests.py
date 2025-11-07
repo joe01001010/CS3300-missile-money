@@ -576,3 +576,93 @@ class TransactionCategoryTestCase(TestCase):
             self.assertIsNotNone(transaction)
             self.assertEqual(transaction.category, category)
             self.assertEqual(transaction.type, 'expense')
+
+
+class ReportsViewTestCase(TestCase):
+    """
+    This class is designed to run test cases that will test the filtering logic for transactions from a users point of view
+    This class is designed to be leveraged by the automated tests that django is doing and through github actions
+    The report page should dipslay a list of the current users transactions
+    The report page should allow filtering by transaction type, category, date range, and a free text search query 
+    Teh report page should calculate total income, total expenses and the net total based on the filtered queryset
+    """
+
+    def setUp(self):
+        """
+        This function takes no arguments
+        Set up a test user and a three transactions that can be filtered
+        This function doesnt return anything
+        """
+        self.user = User.objects.create_user(
+            username='joe_test_user',
+            password='idklmao123123'
+        )
+        self.client = Client()
+
+        Transaction.objects.create(
+            user=self.user,
+            type='income',
+            category='job',
+            amount=Decimal('1000.00'),
+            description='Monthly salary'
+        )
+        Transaction.objects.create(
+            user=self.user,
+            type='expense',
+            category='groceries',
+            amount=Decimal('200.00'),
+            description='Weekly groceries'
+        )
+        Transaction.objects.create(
+            user=self.user,
+            type='income',
+            category='investments',
+            amount=Decimal('500.00'),
+            description='Stocks dividends'
+        )
+
+    def test_view_reports_displays_all_transactions_and_totals(self):
+        """
+        This fucntion takes no arguments
+        Ensure the reports view lists all of the user's transactions when no filters are applied and computes the correct summary totals
+        This function has no return value
+        """
+        self.client.login(username='joe_test_user', password='idklmao123123')
+
+        response = self.client.get(reverse('view_reports'))
+        self.assertEqual(response.status_code, 200)
+
+        transactions = list(response.context['transactions'])
+        self.assertEqual(len(transactions), 3)
+
+        expected_income = sum(t.amount for t in transactions if t.type == 'income')
+        expected_expenses = sum(t.amount for t in transactions if t.type == 'expense')
+        expected_net = expected_income - expected_expenses
+
+        self.assertEqual(response.context['total_income'], expected_income)
+        self.assertEqual(response.context['total_expenses'], expected_expenses)
+        self.assertEqual(response.context['net_total'], expected_net)
+
+    def test_view_reports_filters_by_type(self):
+        """
+        This function takes no argumnets
+        Verify that the reports view correctly filters transactions by the type query parameter
+        This function returns nothing
+        """
+        self.client.login(username='joe_test_user', password='idklmao123123')
+
+        response = self.client.get(reverse('view_reports'), {'type': 'income'})
+        self.assertEqual(response.status_code, 200)
+
+        transactions = list(response.context['transactions'])
+        self.assertEqual(len(transactions), 2)
+        for transaction in transactions:
+            self.assertEqual(transaction.type, 'income')
+
+        expected_income = sum(t.amount for t in transactions)
+        expected_expenses = Decimal('0')
+        expected_net = expected_income - expected_expenses
+
+        self.assertEqual(response.context['total_income'], expected_income)
+        self.assertEqual(response.context['total_expenses'], expected_expenses)
+        self.assertEqual(response.context['net_total'], expected_net)

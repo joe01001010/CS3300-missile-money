@@ -1,8 +1,48 @@
 {% extends 'base.html' %}
-
 {% block title %}Reports{% endblock %}
-
 {% block content %}
-<h1>Reports Page</h1>
-<p>This is a placeholder for reports. Need to finish this before the project is due. Also add export functionality.</p>
-{% endblock %}
+<h1>Reports</h1>
+<form method="get">
+    <label>Category:
+      <select name="category">
+        <option value="">All</option>
+        {% for value, label in categories %}
+          <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+  
+    <label>Type:
+      <select name="type">
+        <option value="">All</option>
+        <option value="income" {% if selected_type == 'income' %}selected{% endif %}>Income</option>
+        <option value="expense" {% if selected_type == 'expense' %}selected{% endif %}>Expense</option>
+      </select>
+    </label>
+  
+    <label>Start date: <input type="date" name="start_date" value="{{ start_date }}"></label>
+    <label>End date: <input type="date" name="end_date" value="{{ end_date }}"></label>
+    <label>Search: <input type="text" name="q" value="{{ search_query }}"></label>
+  
+    <button type="submit">Filter</button>
+    <a href="{% url 'view_reports' %}">Clear</a>
+  </form>
+  {% if transactions %}
+    <h2>Filtered Transactions</h2>
+    <ul>
+      {% for t in transactions %}
+        <li>{{ t.date }} – {{ t.description|default:"No description" }} – ${{ t.amount }}
+            ({{ t.get_type_display }}{% if t.category %} / {{ t.get_category_display }}{% endif %})
+        </li>
+      {% endfor %}
+    </ul>
+    <h3>Summary</h3>
+    <p>Total income: ${{ total_income }}</p>
+    <p>Total expenses: ${{ total_expenses }}</p>
+    <p>Net total: ${{ net_total }}</p>
+  {% else %}
+    <p>No transactions match your filter criteria.</p>
+  {% endif %}
+  {% endblock %}
