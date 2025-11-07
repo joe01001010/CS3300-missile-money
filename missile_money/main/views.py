@@ -13,6 +13,8 @@ from .models import Transaction
 from collections import defaultdict
 from django.utils.timezone import localtime
 from django.db.models import Q
+from decimal import Decimal
+from django.contrib.auth.models import User
 
 
 class CustomLoginView(LoginView):
@@ -272,3 +274,58 @@ def delete_transaction(request, transaction_id):
 def transaction_history(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
     return render(request, 'reports.html', {'transactions': transactions})
+
+
+@login_required
+def send_payment(request):
+    """
+    This function takes a request as an argument
+    Allow a logged‑in user to send money to another user
+    Creates an expense for the sender and an income for the recipient in the 'peer' category
+    Redirects back to the dashboard with a message on success or displays errors when invalid
+    This function returns the send_payment.html template
+    """
+    if request.method == 'POST':
+        recipient_username = request.POST.get('recipient', '').strip()
+        amount_str = request.POST.get('amount', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        errors = []
+        try:
+            recipient = User.objects.get(username=recipient_username)
+            if recipient == request.user:
+                errors.append("You cannot send money to yourself.")
+        except User.DoesNotExist:
+            errors.append("Recipient user does not exist.")
+
+        try:
+            amount = Decimal(amount_str)
+            if amount <= 0:
+                errors.append("Amount must be positive.")
+        except Exception:
+            errors.append("Invalid amount.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return redirect('dashboard')
+
+        Transaction.objects.create(
+            user=request.user,
+            type='expense',
+            category='peer',
+            amount=amount,
+            description=description or f"Peer transfer to {recipient_username}"
+        )
+        Transaction.objects.create(
+            user=recipient,
+            type='income',
+            category='peer',
+            amount=amount,
+            description=description or f"Peer transfer from {request.user.username}"
+        )
+
+        messages.success(request, f"Successfully sent ${amount} to {recipient_username}.")
+        return redirect('dashboard')
+
+    return render(request, 'send_payment.html')

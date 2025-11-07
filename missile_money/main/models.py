@@ -12,6 +12,7 @@ class Transaction(models.Model):
         ('investments', 'Investments'),
         ('reimbursements', 'Reimbursements (non-taxable)'),
         ('other_income', 'Other'),
+        ('peer', 'Peer Transfer'),
     ]
 
     EXPENSE_CATEGORIES = [
@@ -19,6 +20,7 @@ class Transaction(models.Model):
         ('utilities_housing', 'Utilities/Housing'),
         ('recreation', 'Recreation'),
         ('other_expense', 'Other'),
+        ('peer', 'Peer Transfer'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
