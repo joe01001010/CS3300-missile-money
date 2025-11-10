@@ -38,5 +38,6 @@ urlpatterns = [
     path('Bill_Split/<int:transaction_id>/', views.Bill_Split, name='Bill_Split'),
     #path('transactions/<int:transaction_id>/split/', views.Bill_Split, name='bill_split'),
 
+    path('view_bills', TemplateView.as_view(template_name='view_bills.html'), name='view_bills'),
 
 ]

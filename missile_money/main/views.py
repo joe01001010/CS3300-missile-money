@@ -247,7 +247,7 @@ def Bill_Split(request, transaction_id):
 
                 # Create the bill from this transaction
                 bill = Bill.objects.create(
-                    title=tx.description or "Split of Transaction #{tx.id}",
+                    title=f"Split of Transaction #{tx.id}",
                     total_amount=tx.amount,
                     created_by=request.user,
                 )
