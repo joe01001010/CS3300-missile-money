@@ -14,6 +14,8 @@ from django.db.models import Sum
 
 from .forms import TransactionForm
 from .models import Transaction, Bill, BillShare
+from django.utils import timezone
+
 
 User = get_user_model()
 
@@ -145,31 +147,46 @@ def delete_transaction(request, transaction_id):
 # ---------------------------
 @login_required
 def dashboard(request):
+    # --------- EXISTING: bill-splitting aware totals ---------
     gross = Transaction.objects.filter(user=request.user).aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
 
     others_owe_all = BillShare.objects.filter(
         bill__created_by=request.user
-    ).exclude(
-        user=request.user
-    ).aggregate(s=Sum('amount_owed'))['s'] or Decimal('0.00')
+    ).exclude(user=request.user).aggregate(s=Sum('amount_owed'))['s'] or Decimal('0.00')
 
     others_owe_paid = BillShare.objects.filter(
-        bill__created_by=request.user,
-        paid=True
-    ).exclude(
-        user=request.user
-    ).aggregate(s=Sum('amount_owed'))['s'] or Decimal('0.00')
+        bill__created_by=request.user, paid=True
+    ).exclude(user=request.user).aggregate(s=Sum('amount_owed'))['s'] or Decimal('0.00')
 
     net_after_split = gross - others_owe_all
-    net_cash_out = gross - others_owe_paid
+    net_cash_out    = gross - others_owe_paid
 
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')[:10]
+    # --------- NEW: compute your original dashboard cards ---------
+    today = timezone.localdate()
+    yr, mo = today.year, today.month
+
+    qs = Transaction.objects.filter(user=request.user)
+
+    # All-time totals for balance card
+    total_income_all   = qs.filter(type='income').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+    total_expenses_all = qs.filter(type='expense').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+    total_balance      = total_income_all - total_expenses_all
+
+    # This-month cards
+    monthly_income = qs.filter(type='income',  date__year=yr, date__month=mo).aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+    monthly_expenses = qs.filter(type='expense', date__year=yr, date__month=mo).aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+
+    # Recent transactions list
+    transactions = qs.order_by('-date')[:10]
 
     ctx = {
-        "total_balance": Decimal('0.00'),
-        "monthly_income": Decimal('0.00'),
-        "monthly_expenses": Decimal('0.00'),
+        # your original cards
+        "total_balance": total_balance,
+        "monthly_income": monthly_income,
+        "monthly_expenses": monthly_expenses,
         "transactions": transactions,
+
+        # bill-split summary numbers (even if you hide them in the template)
         "gross_expenses": gross,
         "others_owe_all": others_owe_all,
         "others_owe_paid": others_owe_paid,
@@ -177,7 +194,6 @@ def dashboard(request):
         "net_cash_out": net_cash_out,
     }
     return render(request, "dashboard.html", ctx)
-
 
 # ---------------------------
 # Reports

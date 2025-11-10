@@ -38,23 +38,8 @@
       </tbody>
     </table>
 
-    {% comment %} Totals block {% endcomment %}
-    {% with
-        others_total=0
-        others_paid=0
-    %}
-      {% for s in shares %}
-        {% if s.user_id != bill.created_by_id %}
-          {% widthratio s.amount_owed 1 1 as _ %} {# noop to avoid unused warnings #}
-        {% endif %}
-      {% endfor %}
-    {% endwith %}
-
+    <!-- Totals (these come from the view; no template math needed) -->
     <div style="margin-top:1rem;">
-      {% comment %}
-        Compute totals server-side is cleaner; see view code below where we pass:
-        total_others, total_paid, total_unpaid
-      {% endcomment %}
       <p><strong>Others owe total:</strong> ${{ total_others }}</p>
       <p><strong>Paid to you:</strong> ${{ total_paid }}</p>
       <p><strong>Still owed (unpaid):</strong> ${{ total_unpaid }}</p>
