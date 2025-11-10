@@ -1,10 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-Does this work?
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 2rem auto;">
+  <h2 class="mb-3">Your Bills</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  {% if bills %}
+    <table class="table" style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; border-bottom:1px solid #ddd; padding:8px;">Title</th>
+          <th style="text-align:right; border-bottom:1px solid #ddd; padding:8px;">Total</th>
+          <th style="text-align:left; border-bottom:1px solid #ddd; padding:8px;">Created</th>
+          <th style="text-align:left; border-bottom:1px solid #ddd; padding:8px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bills %}
+          <tr>
+            <td style="padding:8px;">{{ b.title }}</td>
+            <td style="padding:8px; text-align:right;">${{ b.total_amount }}</td>
+            <td style="padding:8px;">{{ b.date_created|date:"Y-m-d H:i" }}</td>
+            <td style="padding:8px;">
+              <a href="{% url 'bill_detail' b.id %}">View</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No bills yet.</p>
+  {% endif %}
+
+  <p style="margin-top:1rem;"><a href="{% url 'dashboard' %}">← Back to dashboard</a></p>
+</div>
+{% endblock %}

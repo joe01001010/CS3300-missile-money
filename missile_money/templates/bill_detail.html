@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 2rem auto;">
+  <h2>{{ bill.title }}</h2>
+  <p><strong>Total:</strong> ${{ bill.total_amount }}</p>
+  <p><strong>Created:</strong> {{ bill.date_created|date:"Y-m-d H:i" }}</p>
+
+  <h3 style="margin-top:1.5rem;">Participants</h3>
+  {% if shares %}
+    <table style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left;">User</th>
+          <th style="text-align:right;">Amount Owed</th>
+          <th style="text-align:center;">Status</th>
+          <th style="text-align:center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in shares %}
+          <tr>
+            <td style="padding:8px;">{{ s.user.get_full_name|default:s.user.username }}</td>
+            <td style="padding:8px; text-align:right;">${{ s.amount_owed }}</td>
+            <td style="padding:8px; text-align:center;">
+              {% if s.paid %}<span style="color:#2ecc71;">Paid</span>{% else %}<span style="color:#e67e22;">Unpaid</span>{% endif %}
+            </td>
+            <td style="padding:8px; text-align:center;">
+              {% if bill.created_by_id == request.user.id %}
+                <a href="{% url 'toggle_share_paid' bill.id s.id %}">
+                  Mark {% if s.paid %}Unpaid{% else %}Paid{% endif %}
+                </a>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% comment %} Totals block {% endcomment %}
+    {% with
+        others_total=0
+        others_paid=0
+    %}
+      {% for s in shares %}
+        {% if s.user_id != bill.created_by_id %}
+          {% widthratio s.amount_owed 1 1 as _ %} {# noop to avoid unused warnings #}
+        {% endif %}
+      {% endfor %}
+    {% endwith %}
+
+    <div style="margin-top:1rem;">
+      {% comment %}
+        Compute totals server-side is cleaner; see view code below where we pass:
+        total_others, total_paid, total_unpaid
+      {% endcomment %}
+      <p><strong>Others owe total:</strong> ${{ total_others }}</p>
+      <p><strong>Paid to you:</strong> ${{ total_paid }}</p>
+      <p><strong>Still owed (unpaid):</strong> ${{ total_unpaid }}</p>
+    </div>
+
+  {% else %}
+    <p>No participants recorded.</p>
+  {% endif %}
+
+  <p style="margin-top:1rem;">
+    <a href="{% url 'view_bills' %}">← Back to bills</a>
+  </p>
+</div>
+{% endblock %}

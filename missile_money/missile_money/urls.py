@@ -36,8 +36,12 @@ urlpatterns = [
     path('transaction/delete/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('reports/', views.view_reports, name='view_reports'),
     path('Bill_Split/<int:transaction_id>/', views.Bill_Split, name='Bill_Split'),
-    #path('transactions/<int:transaction_id>/split/', views.Bill_Split, name='bill_split'),
+    path('bills/', views.view_bills, name='view_bills'),
+    path('bills/<int:bill_id>/', views.bill_detail, name='bill_detail'),
+    path('bills/<int:bill_id>/shares/<int:share_id>/toggle-paid/',
+     views.toggle_share_paid, name='toggle_share_paid'),
 
-    path('view_bills', TemplateView.as_view(template_name='view_bills.html'), name='view_bills'),
+
+
 
 ]

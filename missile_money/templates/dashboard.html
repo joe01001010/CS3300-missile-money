@@ -3,6 +3,66 @@
 {% block title %}Dashboard - Missile Money{% endblock %}
 
 {% block content %}
+
+<!-- ===== NEW: Expense Summary (uses the new ctx keys we compute in views.py) ===== -->
+<section class="card" style="margin-bottom: 1rem;">
+  <h2>Expense Summary</h2>
+  <div style="display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:.5rem;">
+
+    <div class="card" style="padding:14px;">
+      <div style="opacity:.8; font-size:.9rem;">Gross Expenses</div>
+      <div style="font-size:1.4rem; margin-top:6px;">
+        ${{ gross_expenses|floatformat:2 }}
+      </div>
+      <div style="opacity:.7; font-size:.85rem; margin-top:6px;">
+        Sum of all your transactions
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;">
+      <div style="opacity:.8; font-size:.9rem;">Others Owe You (All)</div>
+      <div style="font-size:1.4rem; margin-top:6px;">
+        ${{ others_owe_all|floatformat:2 }}
+      </div>
+      <div style="opacity:.7; font-size:.85rem; margin-top:6px;">
+        Total of everyone else’s shares on bills you created
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px;">
+      <div style="opacity:.8; font-size:.9rem;">Others Paid You</div>
+      <div style="font-size:1.4rem; margin-top:6px;">
+        ${{ others_owe_paid|floatformat:2 }}
+      </div>
+      <div style="opacity:.7; font-size:.85rem; margin-top:6px;">
+        Only BillShares marked as “Paid”
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px; background:#0f1e14; border:1px solid #22402a;">
+      <div style="opacity:.8; font-size:.9rem;">Net After Split</div>
+      <div style="font-size:1.6rem; margin-top:6px;">
+        ${{ net_after_split|floatformat:2 }}
+      </div>
+      <div style="opacity:.7; font-size:.85rem; margin-top:6px;">
+        Gross − Others’ shares (immediate)
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px; background:#0f1a24; border:1px solid #23384a;">
+      <div style="opacity:.8; font-size:.9rem;">Net Cash-Out</div>
+      <div style="font-size:1.6rem; margin-top:6px;">
+        ${{ net_cash_out|floatformat:2 }}
+      </div>
+      <div style="opacity:.7; font-size:.85rem; margin-top:6px;">
+        Gross − Paid reimbursements (when money arrives)
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- ===== END NEW ===== -->
+
 <div class="card">
     <h1>Financial Dashboard</h1>
     <p>Welcome to your financial command center. Track, analyze, and optimize your money.</p>
@@ -80,8 +140,6 @@
         <a href="{% url 'add_transaction' %}?type=income" class="btn">Add Income</a>
         <a href="{% url 'add_transaction' %}?type=expense" class="btn" style="background-color: #ff4444;">Add Expense</a>
         <a href="{% url 'view_reports' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</a>
-        
-
     </div>
 </div>
 

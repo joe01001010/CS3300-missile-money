@@ -1,61 +1,44 @@
+# main/views.py
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
+from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
-from django.shortcuts import redirect
-from django.contrib import messages
-from .forms import TransactionForm, BillSplitForm
+from django.http import HttpResponseForbidden
+from django.db.models import Sum
+
+from .forms import TransactionForm
 from .models import Transaction, Bill, BillShare
-from collections import defaultdict
-from django.utils.timezone import localtime
+
+User = get_user_model()
 
 
-
-
+# ---------------------------
+# Authentication
+# ---------------------------
 class CustomLoginView(LoginView):
-    """
-    This class will handle the login functionality
-    It will redirect to the login page after successful login
-    There is no return value for this class
-    """
     template_name = 'registration/login.html'
     redirect_authenticated_user = True
-    
-    
+
     def form_valid(self, form):
-        """
-        This function will handle valid login attempts
-        It will return a 200 status code
-        There is no return value for this function
-        """
         messages.success(self.request, f'Welcome back, {form.get_user().username}!')
         return super().form_valid(form)
-    
 
     def form_invalid(self, form):
-        """
-        This function will handle invalid login attempts
-        It will return a 400 status code
-        There is no return value for this function
-        """
         messages.error(self.request, 'Invalid username or password. Please try again.')
         return super().form_invalid(form)
 
 
 def register(request):
-    """
-    This function will register a new user
-    It will redirect to the login page after successful registration
-    There is no return value for this function
-    """
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('login')
@@ -70,33 +53,19 @@ def register(request):
 
 @login_required
 def profile(request):
-    """
-    This function will render the profile page
-    It will return a 200 status code
-    There is no return value for this function
-    """
     return render(request, 'registration/profile.html')
 
 
 def custom_logout(request):
-    """
-    This function will logout the user
-    It will redirect to the home page
-    There is no return value for this function
-    """
     logout(request)
     messages.success(request, 'You have been successfully logged out.')
     return redirect('home')
 
 
+# ---------------------------
+# Feedback
+# ---------------------------
 def submit_feedback(request):
-    """
-    This function will submit feedback to the support team
-    It will send an email to the support team with the feedback
-    There is no return value for this function
-    This function is currently setup for testing, will need to change from_email and to when switching to production
-    This function will redirect to the home page after successful submission
-    """
     if request.method == "POST":
         user_email = request.POST.get("email", "").strip()
         message = request.POST.get("message", "").strip()
@@ -111,8 +80,8 @@ def submit_feedback(request):
         email = EmailMessage(
             subject=subject,
             body=body,
-            from_email="website@missile-money.com", # Change this for production usage. I made it this for local testing
-            to=["support@missile-money.com"], # Change this for production usage. I made it this for local testing
+            from_email="website@missile-money.com",
+            to=["support@missile-money.com"],
             reply_to=[user_email] if user_email else None,
         )
 
@@ -128,6 +97,9 @@ def submit_feedback(request):
     return redirect("home")
 
 
+# ---------------------------
+# Transactions
+# ---------------------------
 @login_required
 def add_transaction(request):
     if request.method == 'POST':
@@ -139,57 +111,14 @@ def add_transaction(request):
             messages.success(request, 'Transaction added successfully!')
             return redirect('dashboard')
     else:
-        # Check for initial type from URL parameter
         initial_type = request.GET.get('type', '').lower()
         form = TransactionForm(initial={'type': initial_type} if initial_type else {})
     return render(request, 'add_transaction.html', {'form': form})
 
 
 @login_required
-def dashboard(request):
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-    
-    total_balance = 0
-    for transaction in transactions:
-        if transaction.type == 'income':
-            total_balance += transaction.amount
-        elif transaction.type == 'expense':
-            total_balance -= transaction.amount
-    
-    monthly_income = sum(t.amount for t in transactions if t.type == 'income')
-    monthly_expenses = sum(t.amount for t in transactions if t.type == 'expense')
-    savings_goal = 0
-
-    transactions_by_month = defaultdict(list)
-    for t in transactions:
-        month_key = t.date.strftime("%Y-%m")
-        transactions_by_month[month_key].append(t)
-
-    transactions_by_month = dict(sorted(transactions_by_month.items(), reverse=True))
-
-    context = {
-        'transactions': transactions,
-        'transactions_by_month': transactions_by_month,
-        'total_balance': total_balance,
-        'monthly_income': monthly_income,
-        'monthly_expenses': monthly_expenses,
-        'savings_goal': savings_goal,
-    }
-    return render(request, 'dashboard.html', context)
-
-
-def view_reports(request):
-    return render(request, 'reports.html')
-
-@login_required
 def edit_transaction(request, transaction_id):
-    """
-    This function will edit an existing transaction
-    It will redirect to the dashboard after successful edit
-    There is no return value for this function
-    """
     transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
-    
     if request.method == 'POST':
         transaction.type = request.POST.get('type')
         transaction.category = request.POST.get('category', '')
@@ -198,75 +127,185 @@ def edit_transaction(request, transaction_id):
         transaction.save()
         messages.success(request, 'Transaction updated successfully!')
         return redirect('dashboard')
-    
     return render(request, 'edit_transaction.html', {'transaction': transaction})
+
 
 @login_required
 def delete_transaction(request, transaction_id):
-    """
-    This function will delete a transaction
-    It will redirect to the dashboard after successful deletion
-    There is no return value for this function
-    """
     transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
-    
     if request.method == 'POST':
         transaction.delete()
         messages.success(request, 'Transaction deleted successfully!')
         return redirect('dashboard')
-    
     return render(request, 'delete_transaction.html', {'transaction': transaction})
 
 
+# ---------------------------
+# Dashboard (with bill split tracking)
+# ---------------------------
+@login_required
+def dashboard(request):
+    gross = Transaction.objects.filter(user=request.user).aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+
+    others_owe_all = BillShare.objects.filter(
+        bill__created_by=request.user
+    ).exclude(
+        user=request.user
+    ).aggregate(s=Sum('amount_owed'))['s'] or Decimal('0.00')
+
+    others_owe_paid = BillShare.objects.filter(
+        bill__created_by=request.user,
+        paid=True
+    ).exclude(
+        user=request.user
+    ).aggregate(s=Sum('amount_owed'))['s'] or Decimal('0.00')
+
+    net_after_split = gross - others_owe_all
+    net_cash_out = gross - others_owe_paid
+
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')[:10]
+
+    ctx = {
+        "total_balance": Decimal('0.00'),
+        "monthly_income": Decimal('0.00'),
+        "monthly_expenses": Decimal('0.00'),
+        "transactions": transactions,
+        "gross_expenses": gross,
+        "others_owe_all": others_owe_all,
+        "others_owe_paid": others_owe_paid,
+        "net_after_split": net_after_split,
+        "net_cash_out": net_cash_out,
+    }
+    return render(request, "dashboard.html", ctx)
+
+
+# ---------------------------
+# Reports
+# ---------------------------
+def view_reports(request):
+    return render(request, 'reports.html')
+
+
+# ---------------------------
+# Bill Split
+# ---------------------------
+@login_required
 def Bill_Split(request, transaction_id):
-        """
-        Split an existing EXPENSE Transaction into a Bill with equal shares.
-        - Only the owner of the transaction can split it.
-        - Creates Bill + BillShare rows.
-        """
-        tx = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+    tx = get_object_or_404(Transaction, id=transaction_id)
 
-        if tx.type != 'expense':
-            messages.error(request, "Only expense transactions can be split.")
-            return redirect('dashboard')
+    if request.method == 'POST':
+        total = Decimal(tx.amount).quantize(Decimal('0.01'))
+        errors = []
 
-        if request.method == 'POST':
-            form = BillSplitForm(request.POST)
-            if form.is_valid():
-                participants = list(form.cleaned_data['participants'])
-                include_payer = form.cleaned_data['include_payer']
-                mark_my_share_paid = form.cleaned_data['mark_my_share_paid']
+        selected_ids = request.POST.getlist('participants')
+        include_me = 'include_me' in request.POST
 
-                # Ensure payer is included if checkbox checked
-                if include_payer and request.user not in participants:
-                    participants.append(request.user)
+        participants = []
+        amount_sum = Decimal('0.00')
 
-                if not participants:
-                    messages.error(request, "Select at least one participant.")
-                    return render(request, 'Bill_Split.html', {'form': form, 'transaction': tx})
+        if include_me:
+            amt_str = (request.POST.get('amount_me') or '').strip()
+            try:
+                amt = Decimal(amt_str).quantize(Decimal('0.01'))
+            except (InvalidOperation, AttributeError):
+                amt = None
+            if amt is None or amt < 0:
+                errors.append("Your amount must be a non-negative number.")
+            else:
+                participants.append((request.user, amt))
+                amount_sum += amt
 
-                # Create the bill from this transaction
-                bill = Bill.objects.create(
-                    title=f"Split of Transaction #{tx.id}",
-                    total_amount=tx.amount,
-                    created_by=request.user,
-                )
+        qs = User.objects.filter(id__in=selected_ids)
+        for u in qs:
+            amt_str = (request.POST.get(f'amount_{u.id}') or '').strip()
+            try:
+                amt = Decimal(amt_str).quantize(Decimal('0.01'))
+            except (InvalidOperation, AttributeError):
+                amt = None
+            if amt is None or amt < 0:
+                errors.append(f"Amount for {u.username} must be a non-negative number.")
+            else:
+                participants.append((u, amt))
+                amount_sum += amt
 
-                # Equal split
-                share_amount = tx.amount / len(participants)
+        diff = (total - amount_sum).quantize(Decimal('0.01'))
 
-                for u in participants:
-                    paid = (u == request.user and mark_my_share_paid)
-                    BillShare.objects.create(
-                        bill=bill,
-                        user=u,
-                        amount_owed=share_amount,
-                        paid=paid
-                    )
+        if errors:
+            return render(request, 'bill_split.html', {
+                'transaction': tx,
+                'users': User.objects.exclude(id=request.user.id),
+                'error': " ".join(errors),
+            })
 
-                messages.success(request, "Bill created and split successfully.")
-                return redirect('view_bills')  # make sure you have this page
-        else:
-            form = BillSplitForm()
+        if abs(diff) > Decimal('0.01'):
+            return render(request, 'bill_split.html', {
+                'transaction': tx,
+                'users': User.objects.exclude(id=request.user.id),
+                'error': f"Entered amounts total ${amount_sum}, which differs from the transaction total ${total}.",
+            })
 
-        return render(request, 'Bill_Split.html', {'form': form, 'transaction': tx})
+        if diff != Decimal('0.00'):
+            last_user, last_amt = participants[-1]
+            participants[-1] = (last_user, (last_amt + diff).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+
+        bill = Bill.objects.create(
+            title=f"Split of Transaction #{tx.id}",
+            total_amount=tx.amount,
+            created_by=request.user,
+        )
+        for u, amt in participants:
+            BillShare.objects.create(bill=bill, user=u, amount_owed=amt)
+
+        messages.success(request, "Bill created and split successfully.")
+        return redirect('bill_detail', bill_id=bill.id)
+
+    users = User.objects.exclude(id=request.user.id)
+    return render(request, 'bill_split.html', {'transaction': tx, 'users': users})
+
+
+# ---------------------------
+# View Bills + Details
+# ---------------------------
+@login_required
+def view_bills(request):
+    bills = Bill.objects.filter(created_by=request.user).order_by('-date_created')
+    return render(request, 'view_bills.html', {'bills': bills})
+
+
+@login_required
+def bill_detail(request, bill_id):
+    bill = get_object_or_404(Bill, id=bill_id, created_by=request.user)
+    shares = BillShare.objects.filter(bill=bill).select_related('user').order_by('id')
+
+    total_others = Decimal('0.00')
+    total_paid = Decimal('0.00')
+    for s in shares:
+        if s.user_id != bill.created_by_id:
+            total_others += s.amount_owed
+            if s.paid:
+                total_paid += s.amount_owed
+    total_unpaid = total_others - total_paid
+
+    ctx = {
+        'bill': bill,
+        'shares': shares,
+        'total_others': f"{total_others:.2f}",
+        'total_paid': f"{total_paid:.2f}",
+        'total_unpaid': f"{total_unpaid:.2f}",
+    }
+    return render(request, 'bill_detail.html', ctx)
+
+
+# ---------------------------
+# Toggle Paid / Unpaid
+# ---------------------------
+@login_required
+def toggle_share_paid(request, bill_id, share_id):
+    bill = get_object_or_404(Bill, id=bill_id)
+    share = get_object_or_404(BillShare, id=share_id, bill=bill)
+    if bill.created_by_id != request.user.id:
+        return HttpResponseForbidden("You can't modify this bill.")
+    share.paid = not share.paid
+    share.save(update_fields=["paid"])
+    messages.success(request, f"Marked {share.user.username} as {'paid' if share.paid else 'unpaid'}.")
+    return redirect('bill_detail', bill_id=bill.id)

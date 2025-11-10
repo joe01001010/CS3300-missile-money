@@ -1,12 +1,104 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Split Transaction #{{ transaction.id }} — ${{ transaction.amount }}</h2>
-  <p>{{ transaction.description }}</p>
+<div class="container" style="max-width: 900px; margin: 2rem auto;">
+  <h2>Split Transaction #{{ transaction.id }}</h2>
+  <p><strong>Total amount:</strong> ${{ transaction.amount }}</p>
 
-  <form method="POST">
+  {% if error %}
+    <div style="background:#522; color:#fff; padding:.75rem 1rem; border-radius:6px; margin-bottom:1rem;">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" id="splitForm">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Create Bill</button>
-    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+
+    <h3 style="margin-top:1rem;">Select participants & enter amounts</h3>
+    <p style="margin:.25rem 0 .75rem 0;">
+      Enter **dollar amounts** (to cents). The sum must equal the total.
+    </p>
+
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; border-bottom:1px solid #333; padding:8px;">Include</th>
+          <th style="text-align:left; border-bottom:1px solid #333; padding:8px;">User</th>
+          <th style="text-align:right; border-bottom:1px solid #333; padding:8px;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Yourself -->
+        <tr>
+          <td style="padding:8px;">
+            <input type="checkbox" name="include_me" id="include_me" checked>
+          </td>
+          <td style="padding:8px;">{{ request.user.username }} (you)</td>
+          <td style="padding:8px; text-align:right;">
+            <input type="number" step="0.01" min="0" name="amount_me" id="amount_me" style="width:130px; text-align:right;">
+          </td>
+        </tr>
+
+        <!-- Other users -->
+        {% for u in users %}
+        <tr>
+          <td style="padding:8px;">
+            <input type="checkbox" name="participants" value="{{ u.id }}" id="chk_{{ u.id }}">
+          </td>
+          <td style="padding:8px;">{{ u.username }}</td>
+          <td style="padding:8px; text-align:right;">
+            <input type="number" step="0.01" min="0" name="amount_{{ u.id }}" id="amount_{{ u.id }}" style="width:130px; text-align:right;" disabled>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="margin-top:12px; font-size:.95rem;">
+      <span id="sumInfo"></span>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <button type="submit">Create Split</button>
+      <a href="{% url 'dashboard' %}" style="margin-left:1rem;">Cancel</a>
+    </div>
   </form>
+</div>
+
+<script>
+// Enable/disable amount inputs based on checkboxes
+document.querySelectorAll('input[type=checkbox][name=participants]').forEach(cb => {
+  const id = cb.value;
+  const amt = document.getElementById('amount_' + id);
+  cb.addEventListener('change', () => { amt.disabled = !cb.checked; if (!cb.checked) amt.value = ''; updateSum(); });
+});
+
+const includeMe = document.getElementById('include_me');
+const amountMe  = document.getElementById('amount_me');
+includeMe.addEventListener('change', () => { amountMe.disabled = !includeMe.checked; if (!includeMe.checked) amountMe.value=''; updateSum(); });
+
+document.querySelectorAll('input[type=number]').forEach(inp => {
+  inp.addEventListener('input', updateSum);
+});
+
+function updateSum() {
+  let total = parseFloat('{{ transaction.amount }}');
+  let sum = 0.0;
+
+  if (includeMe.checked && amountMe.value) sum += parseFloat(amountMe.value) || 0;
+
+  document.querySelectorAll('input[type=checkbox][name=participants]:checked').forEach(cb => {
+    const id = cb.value;
+    const v = parseFloat(document.getElementById('amount_' + id).value) || 0;
+    sum += v;
+  });
+
+  const rem = (total - sum).toFixed(2);
+  const si = document.getElementById('sumInfo');
+  si.textContent = `Entered sum: $${sum.toFixed(2)}  •  Remaining: $${rem}`;
+}
+
+// initialize
+amountMe.value = '';
+updateSum();
+</script>
 {% endblock %}
