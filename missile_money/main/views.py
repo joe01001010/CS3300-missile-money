@@ -132,17 +132,31 @@ def submit_feedback(request):
 @login_required
 def add_transaction(request):
     if request.method == 'POST':
-        form = TransactionForm(request.POST)
+        form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user
             transaction.save()
+
+            if transaction.type == 'expense' and form.cleaned_data['peer_payment']:
+                recipient_user = form.cleaned_data['recipient']
+                income_tx = Transaction.objects.create(
+                    user=recipient_user,
+                    type='income',
+                    category='other_income',
+                    amount=transaction.amount,
+                    description=f"Peer payment from {request.user.username}",
+                    peer_payment=True,
+                )
+                # link the transactions
+                transaction.related_transaction = income_tx
+                transaction.save()
             messages.success(request, 'Transaction added successfully!')
             return redirect('dashboard')
     else:
-        # Check for initial type from URL parameter
-        initial_type = request.GET.get('type', '').lower()
-        form = TransactionForm(initial={'type': initial_type} if initial_type else {})
+        form = TransactionForm(user=request.user, initial={
+            'type': request.GET.get('type','').lower()
+        })
     return render(request, 'add_transaction.html', {'form': form})
 
 

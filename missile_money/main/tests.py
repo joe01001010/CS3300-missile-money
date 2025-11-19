@@ -711,7 +711,6 @@ class PeerPaymentTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('dashboard'), response.url)
-        # No new transactions
         self.assertEqual(Transaction.objects.count(), initial_count)
 
 
