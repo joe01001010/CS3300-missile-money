@@ -1,12 +1,16 @@
 from django import forms
 from .models import Transaction
+from django.contrib.auth.models import User
 
 class TransactionForm(forms.ModelForm):
-    category = forms.ChoiceField(choices=[], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+    peer_payment = forms.BooleanField(required=False)
+    recipient = forms.ModelChoiceField(
+        queryset=User.objects.none(), required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}))
     
     class Meta:
         model = Transaction
-        fields = ['type', 'category', 'amount', 'description']
+        fields = ['type', 'category', 'amount', 'description', 'peer_payment', 'recipient']
         widgets = {
             'type': forms.Select(attrs={'class': 'form-control', 'onchange': 'updateCategories()'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -14,7 +18,12 @@ class TransactionForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        if user:
+            self.fields['recipient'].queryset = User.objects.exclude(id=user.id)
+        else:
+            self.fields['recipient'].queryset = User.objects.all()
         # Set initial category choices based on transaction type
         if self.instance and self.instance.pk:
             # Editing existing transaction

@@ -19,6 +19,7 @@ class Transaction(models.Model):
         ('utilities_housing', 'Utilities/Housing'),
         ('recreation', 'Recreation'),
         ('other_expense', 'Other'),
+        ('peer', 'Peer Transfer'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -27,6 +28,15 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.CharField(max_length=255, blank=True)
     date = models.DateField(auto_now_add=True)
+
+    peer_payment = models.BooleanField(default=False)
+    recipient = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='received_payments')
+    related_transaction = models.OneToOneField( 'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='peer_counterpart')
+
+    def __str__(self):
+        if self.peer_payment and self.recipient:
+            return f"{self.user.username} paid {self.recipient.username} {self.amount}"
+        return super().__str__()
 
     def __str__(self):
         return f"{self.user.username} - {self.type} - {self.amount}"

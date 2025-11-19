@@ -1,4 +1,4 @@
-name: Django CI
+name: Missile Money test CI file
 
 on:
   push:
