@@ -35,4 +35,5 @@ urlpatterns = [
     path('transaction/delete/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('reports/', views.view_reports, name='view_reports'),
     path('send_payment/', views.send_payment, name='send_payment'),
+    path('getting-started/', views.start_guide, name='start_guide'),
 ]

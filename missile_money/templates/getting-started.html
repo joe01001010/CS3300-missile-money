@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Getting started first steps page{% endblock %}
+
+
+{% block content %}
+<div class="header" style="padding: 0.5rem 1rem;">
+    <h1 style="text-align: center;">Congratulations on getting started {{ request.user }}!</h1>
+    <p style="text-align: center;">This is a simple guide to help you start tracking your financial goals!</p>
+</div>
+
+<div class="card" style="padding: 0.5rem 1rem;">
+    <h1>Step One: Set a savings goal!</h1>
+    <p>This should not be a one time thing.</p>
+    <p>As your financial maturity grows and your financial situation changes this should be updated.</p>
+</div>
+
+
+{% endblock %}

@@ -8,7 +8,11 @@
     <p>Your advanced financial tracking platform.</p>
     
     <div style="margin-top: 2rem;">
-        <button class="btn">Get Started</button>
+        {% if user.is_authenticated %}
+        <a href="{% url 'start_guide' %}" class="btn" style="padding: 0.5rem 1rem;">Get Started - Tracking</a>
+        {% else %}
+        <a href="{% url 'register' %}" class="btn" style="padding: 0.5rem 1rem;">Get Started</a>
+        {% endif %}
     </div>
 </div>
 
@@ -25,7 +29,7 @@
         </div>
         <div style="padding: 1rem; background: var(--bg-tertiary); border-radius: 5px;">
             <h3>🔒 Secure</h3>
-            <p>Bank-level security for your data.</p>
+            <p>Advanced Encryption standards for your data.</p>
         </div>
     </div>
 </div>
