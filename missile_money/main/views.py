@@ -74,9 +74,53 @@ def profile(request):
     """
     This function will render the profile page
     It will return a 200 status code
-    There is no return value for this function
+    This will also display the transactions associated to the user profile like the reports.html page
     """
-    return render(request, 'registration/profile.html')
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    # Extract query parameters for filtering
+    category = request.GET.get('category')
+    tx_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search_query = request.GET.get('q')
+
+    # Apply filters as needed
+    if category:
+        transactions = transactions.filter(category=category)
+    if tx_type in ['income', 'expense']:
+        transactions = transactions.filter(type=tx_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+    if search_query:
+        transactions = transactions.filter(
+            Q(description__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+
+    # Calculate summary totals
+    total_income = sum(t.amount for t in transactions if t.type == 'income')
+    total_expenses = sum(t.amount for t in transactions if t.type == 'expense')
+    net_total = total_income - total_expenses
+
+    # Combine category choices for dropdown
+    categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
+
+    context = {
+        'transactions': transactions,
+        'categories': categories,
+        'selected_category': category,
+        'selected_type': tx_type,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'net_total': net_total,
+    }
+    return render(request, 'registration/profile.html', context)
 
 
 def custom_logout(request):

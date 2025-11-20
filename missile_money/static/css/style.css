@@ -40,3 +40,14 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 255, 65, 0.3);
 }
+
+.Row {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 10px;
+}
+.Column {
+    display: table-cell;
+    background-color: red;
+}

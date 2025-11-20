@@ -26,9 +26,24 @@
 </div>
 
 <div class="card" style="margin-top: 2rem;">
-    <h2>Your Financial Summary</h2>
-    <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-        Financial data will appear here once you start using Missile Money features.
+    <h2 style="text-align: center;">Your Financial Summary</h2>
+    <p style="text-align: center; color: var(--text-secondary);">
+        {% if transactions %}
+        <div class="Row">
+            <div class="Column">Total income: ${{ total_income }}</div>
+            <div class="Column">Total expenses: ${{ total_expenses }}</div>
+            <div class="Column">Net total: ${{ net_total }}</div>
+            <ul>
+                {% for t in transactions %}
+                    <li>{{ t.date }} – {{ t.description|default:"No description" }} – ${{ t.amount }}
+                        ({{ t.get_type_display }}{% if t.category %} / {{ t.get_category_display }}{% endif %})
+                    </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                <p>No transactions match your filter criteria.</p>
+            {% endif %}
+        </div>
     </p>
 </div>
 {% endblock %}
