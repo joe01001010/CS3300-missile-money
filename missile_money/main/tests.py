@@ -190,13 +190,11 @@ class TransactionEditDeleteTestCase(TestCase):
         """
         Set up test user and transactions before each test
         """
-        # Create test user
         self.user = User.objects.create_user(
             username='testuser',
             password='testpass123'
         )
         
-        # Create test transactions
         self.income_transaction = Transaction.objects.create(
             user=self.user,
             type='income',
@@ -211,7 +209,6 @@ class TransactionEditDeleteTestCase(TestCase):
             description='Test Expense'
         )
         
-        # Set up test client
         self.client = Client()
     
 
@@ -233,7 +230,6 @@ class TransactionEditDeleteTestCase(TestCase):
         """
         self.client.login(username='testuser', password='testpass123')
         
-        # Edit the transaction
         response = self.client.post(
             reverse('edit_transaction', args=[self.income_transaction.id]),
             {
@@ -243,10 +239,8 @@ class TransactionEditDeleteTestCase(TestCase):
             }
         )
         
-        # Check redirect to dashboard
         self.assertEqual(response.status_code, 302)
         
-        # Verify the transaction was updated
         updated_transaction = Transaction.objects.get(id=self.income_transaction.id)
         self.assertEqual(updated_transaction.amount, Decimal('3000.00'))
         self.assertEqual(updated_transaction.description, 'Updated Income')
@@ -270,15 +264,12 @@ class TransactionEditDeleteTestCase(TestCase):
         """
         self.client.login(username='testuser', password='testpass123')
         
-        # Delete the transaction
         response = self.client.post(
             reverse('delete_transaction', args=[self.expense_transaction.id])
         )
         
-        # Check redirect to dashboard
         self.assertEqual(response.status_code, 302)
         
-        # Verify the transaction was deleted
         self.assertFalse(
             Transaction.objects.filter(id=self.expense_transaction.id).exists()
         )
@@ -369,13 +360,11 @@ class TransactionCategoryTestCase(TestCase):
         """
         Set up test user before each test
         """
-        # Create test user
         self.user = User.objects.create_user(
             username='testuser',
             password='testpass123'
         )
         
-        # Set up test client
         self.client = Client()
     
 
@@ -385,7 +374,6 @@ class TransactionCategoryTestCase(TestCase):
         """
         self.client.login(username='testuser', password='testpass123')
         
-        # Add an income transaction with a category
         response = self.client.post(reverse('add_transaction'), {
             'type': 'income',
             'category': 'job',
@@ -393,11 +381,9 @@ class TransactionCategoryTestCase(TestCase):
             'description': 'Monthly Salary'
         })
         
-        # Check redirect to dashboard
         self.assertEqual(response.status_code, 302)
         self.assertIn('/dashboard/', response.url)
         
-        # Verify the transaction was created with the category
         transaction = Transaction.objects.filter(user=self.user).first()
         self.assertIsNotNone(transaction)
         self.assertEqual(transaction.type, 'income')
@@ -412,7 +398,6 @@ class TransactionCategoryTestCase(TestCase):
         """
         self.client.login(username='testuser', password='testpass123')
         
-        # Add an expense transaction with a category
         response = self.client.post(reverse('add_transaction'), {
             'type': 'expense',
             'category': 'groceries',
@@ -420,10 +405,8 @@ class TransactionCategoryTestCase(TestCase):
             'description': 'Weekly Groceries'
         })
         
-        # Check redirect to dashboard
         self.assertEqual(response.status_code, 302)
         
-        # Verify the transaction was created with the category
         transaction = Transaction.objects.filter(user=self.user).first()
         self.assertIsNotNone(transaction)
         self.assertEqual(transaction.type, 'expense')
@@ -438,7 +421,6 @@ class TransactionCategoryTestCase(TestCase):
         """
         self.client.login(username='testuser', password='testpass123')
         
-        # Create a transaction
         transaction = Transaction.objects.create(
             user=self.user,
             type='income',
@@ -447,7 +429,6 @@ class TransactionCategoryTestCase(TestCase):
             description='Original Description'
         )
         
-        # Edit the transaction to change category
         response = self.client.post(
             reverse('edit_transaction', args=[transaction.id]),
             {
@@ -458,10 +439,8 @@ class TransactionCategoryTestCase(TestCase):
             }
         )
         
-        # Check redirect to dashboard
         self.assertEqual(response.status_code, 302)
         
-        # Verify the category was updated
         updated_transaction = Transaction.objects.get(id=transaction.id)
         self.assertEqual(updated_transaction.category, 'investments')
         self.assertEqual(updated_transaction.description, 'Investment Income')
@@ -473,7 +452,6 @@ class TransactionCategoryTestCase(TestCase):
         """
         self.client.login(username='testuser', password='testpass123')
         
-        # Add a transaction without a category
         response = self.client.post(reverse('add_transaction'), {
             'type': 'income',
             'category': '',
@@ -481,10 +459,8 @@ class TransactionCategoryTestCase(TestCase):
             'description': 'Cash Gift'
         })
         
-        # Check redirect to dashboard
         self.assertEqual(response.status_code, 302)
         
-        # Verify the transaction was created without a category
         transaction = Transaction.objects.filter(user=self.user).first()
         self.assertIsNotNone(transaction)
         self.assertEqual(transaction.category, '')
@@ -494,7 +470,6 @@ class TransactionCategoryTestCase(TestCase):
         """
         Test the get_category_display method returns correct display names
         """
-        # Create income transaction with category
         income_transaction = Transaction.objects.create(
             user=self.user,
             type='income',
@@ -503,10 +478,8 @@ class TransactionCategoryTestCase(TestCase):
             description='Travel Reimbursement'
         )
         
-        # Verify display name
         self.assertEqual(income_transaction.get_category_display(), 'Reimbursements (non-taxable)')
         
-        # Create expense transaction with category
         expense_transaction = Transaction.objects.create(
             user=self.user,
             type='expense',
@@ -515,10 +488,8 @@ class TransactionCategoryTestCase(TestCase):
             description='Monthly Rent'
         )
         
-        # Verify display name
         self.assertEqual(expense_transaction.get_category_display(), 'Utilities/Housing')
         
-        # Create transaction without category
         no_category = Transaction.objects.create(
             user=self.user,
             type='income',
@@ -527,7 +498,6 @@ class TransactionCategoryTestCase(TestCase):
             description='Misc Income'
         )
         
-        # Verify display name for no category
         self.assertEqual(no_category.get_category_display(), 'Uncategorized')
     
 
@@ -620,6 +590,7 @@ class ReportsViewTestCase(TestCase):
             description='Stocks dividends'
         )
 
+
     def test_view_reports_displays_all_transactions_and_totals(self):
         """
         This fucntion takes no arguments
@@ -641,6 +612,7 @@ class ReportsViewTestCase(TestCase):
         self.assertEqual(response.context['total_income'], expected_income)
         self.assertEqual(response.context['total_expenses'], expected_expenses)
         self.assertEqual(response.context['net_total'], expected_net)
+
 
     def test_view_reports_filters_by_type(self):
         """
@@ -675,12 +647,20 @@ class PeerPaymentTestCase(TestCase):
     This function doesnt return anything
     """
     def setUp(self):
+        """
+        This function simply sets up a user for the sender and receiver to test
+        """
         self.sender = User.objects.create_user(username='sender', password='testpass')
         self.receiver = User.objects.create_user(username='receiver', password='testpass')
         self.client = Client()
 
 
     def test_send_payment_creates_transactions(self):
+        """
+        This function will log in the sender and receiver and test sending money back and forth
+        This function will also test a redirect back to the dashboard after the money is sent
+        This function will ensure the money is tracked appropriately in the receivers account
+        """
         self.client.login(username='sender', password='testpass')
         amount = Decimal('50.00')
         response = self.client.post(reverse('send_payment'), {
@@ -688,7 +668,6 @@ class PeerPaymentTestCase(TestCase):
             'amount': str(amount),
             'description': 'Test peer transfer'
         })
-        # should redirect to dashboard on success
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('dashboard'), response.url)
 
@@ -701,6 +680,10 @@ class PeerPaymentTestCase(TestCase):
 
 
     def test_send_payment_invalid_recipient(self):
+        """
+        This function will ensure that payments cant be sent to the wrong users
+        This function will also ensure the user is redirected to the dashboard
+        """
         self.client.login(username='sender', password='testpass')
         initial_count = Transaction.objects.count()
         response = self.client.post(reverse('send_payment'), {
@@ -714,6 +697,9 @@ class PeerPaymentTestCase(TestCase):
 
 
     def test_send_payment_self_recipient(self):
+        """
+        This function tests to ensure users cant send themselves money
+        """
         self.client.login(username='sender', password='testpass')
         initial_count = Transaction.objects.count()
         response = self.client.post(reverse('send_payment'), {
@@ -728,11 +714,15 @@ class PeerPaymentTestCase(TestCase):
 
 class SavingsGoalTestCase(TestCase):
     def setUp(self):
+        """
+        This function creates a user for the test
+        """
         self.client = Client()
         self.user = User.objects.create_user(
             username='savings_user',
             password='testpass123'
         )
+
 
     def test_create_savings_goal(self):
         """
@@ -750,6 +740,7 @@ class SavingsGoalTestCase(TestCase):
         self.assertEqual(goal.name, 'Emergency Fund')
         self.assertEqual(goal.target_amount, Decimal('1000.00'))
         self.assertEqual(goal.target_date, datetime.date(2025, 12, 31))
+
 
     def test_progress_calculation(self):
         """
@@ -782,6 +773,7 @@ class SavingsGoalTestCase(TestCase):
 
         self.assertEqual(current_amount, Decimal('500.00'))
         self.assertEqual(progress_percentage, 50)
+
 
     def test_getting_started_flow_sets_goal(self):
         """

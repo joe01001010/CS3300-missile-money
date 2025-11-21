@@ -19,6 +19,14 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 from main import views
 
+
+"""
+If you add a feature to this website you need to add a url pattern here
+an entry in the 'urlpatterns' list should contain:
+    the endpoint to reach out to which is the name of the html for the page in the templates directory
+    The second argument should be the name of the function as wrote in the views.py file that will return the redirect to the page
+    The final argument should be the name of the url call for internal tracking only and refrencing the call to this url
+"""
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),

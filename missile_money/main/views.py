@@ -21,7 +21,6 @@ class CustomLoginView(LoginView):
     """
     This class will handle the login functionality
     It will redirect to the login page after successful login
-    There is no return value for this class
     """
     template_name = 'registration/login.html'
     redirect_authenticated_user = True
@@ -128,7 +127,6 @@ def profile(request):
         'current_amount': current_amount,
         'progress_percentage': progress_percentage,
     }
-
     return render(request, 'registration/profile.html', context)
 
 
@@ -184,6 +182,11 @@ def submit_feedback(request):
 
 @login_required
 def add_transaction(request):
+    """
+    This function takes a request as an argument
+    This function is to add a transaction for a user
+    This function will return the request and redirect the user to the add transaction html page
+    """
     if request.method == 'POST':
         form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
@@ -201,7 +204,6 @@ def add_transaction(request):
                     description=f"Peer payment from {request.user.username}",
                     peer_payment=True,
                 )
-                # link the transactions
                 transaction.related_transaction = income_tx
                 transaction.save()
             messages.success(request, 'Transaction added successfully!')
@@ -215,6 +217,11 @@ def add_transaction(request):
 
 @login_required
 def dashboard(request):
+    """
+    This function takes a request as an argument
+    This function will display all the transactions associated with the user and the totals
+    This function returns the dashboard html for the user to view
+    """
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
     
     total_balance = 0
@@ -249,19 +256,18 @@ def dashboard(request):
 @login_required
 def view_reports(request):
     """
-    Render the reports page with optional filtering and search on the user's transactions.
-    Users can filter by category, transaction type, date range, and a search term via GET params.
+    Render the reports page with optional filtering and search on the user's transactions
+    This will display all the information associated with the user
+    Users can filter by category, transaction type, date range, and a search term via GET params
     """
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
-    # Extract query parameters for filtering
     category = request.GET.get('category')
     tx_type = request.GET.get('type')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     search_query = request.GET.get('q')
 
-    # Apply filters as needed
     if category:
         transactions = transactions.filter(category=category)
     if tx_type in ['income', 'expense']:
@@ -276,12 +282,10 @@ def view_reports(request):
             Q(category__icontains=search_query)
         )
 
-    # Calculate summary totals
     total_income = sum(t.amount for t in transactions if t.type == 'income')
     total_expenses = sum(t.amount for t in transactions if t.type == 'expense')
     net_total = total_income - total_expenses
 
-    # Combine category choices for dropdown
     categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
 
     context = {
@@ -316,7 +320,6 @@ def edit_transaction(request, transaction_id):
         transaction.save()
         messages.success(request, 'Transaction updated successfully!')
         return redirect('dashboard')
-    
     return render(request, 'edit_transaction.html', {'transaction': transaction})
 
 
@@ -339,6 +342,11 @@ def delete_transaction(request, transaction_id):
 
 @login_required
 def transaction_history(request):
+    """
+    This function takes a request as an argument
+    This function will initially display all the transactions associated with the user sorted by date
+    This function returns the redirect to the reports page for the user to view
+    """
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
     return render(request, 'reports.html', {'transactions': transactions})
 

@@ -1,6 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+"""
+These models are what will have fields in the django database
+All properties and values associated with a user should have a cascading effect
+If a user deletes their account all their stuff is deleted as well
+"""
+
+
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
         ('income', 'Income'),
@@ -55,8 +63,14 @@ class Transaction(models.Model):
 
 
 class SavingsGoal(models.Model):
+    """
+    This class is for the users to set a savings goal
+    This will dynamicalls create variables for the progress percentage
+    current amount saved
+    a display of the goal itself
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, default="My Savings Goal")  # Optional: give goals a name
+    name = models.CharField(max_length=100, default="My Savings Goal")
     target_amount = models.DecimalField(max_digits=12, decimal_places=2)
     target_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
