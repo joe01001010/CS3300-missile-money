@@ -36,4 +36,5 @@ urlpatterns = [
     path('reports/', views.view_reports, name='view_reports'),
     path('send_payment/', views.send_payment, name='send_payment'),
     path('getting-started/', views.start_guide, name='start_guide'),
+    path('savings-goal/', views.savings_goal, name='savings_goal'),
 ]

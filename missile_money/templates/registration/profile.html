@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block title %}Profile - Missile Money{% endblock %}
 
@@ -25,25 +24,41 @@
     </div>
 </div>
 
-<div class="card" style="margin-top: 2rem;">
+<div class="card" style="margin-top: 1rem;">
     <h2 style="text-align: center;">Your Financial Summary</h2>
-    <p style="text-align: center; color: var(--text-secondary);">
+
+    <div class="mm-row" style="margin: 1rem;">
+        <div class="mm-column" style="text-align: center;">
+            <h3 style="margin-top: 0; color: var(--accent-color);">Total Income</h3>
+            <p style="font-size: 1.5rem; font-weight: bold; color: #00ff41;">${{ total_income }}</p>
+        </div>
+        
+        <div class="mm-column" style="text-align: center;">
+            <h3 style="margin-top: 0; color: var(--accent-color);">Total Expenses</h3>
+            <p style="font-size: 1.5rem; font-weight: bold; color: #ff4444;">${{ total_expenses }}</p>
+        </div>
+        
+        <div class="mm-column" style="text-align: center;">
+            <h3 style="margin-top: 0; color: var(--accent-color);">Net Total</h3>
+            <p style="font-size: 1.5rem; font-weight: bold; color: var(--text-color);">${{ net_total }}</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
         {% if transactions %}
-        <div class="Row">
-            <div class="Column">Total income: ${{ total_income }}</div>
-            <div class="Column">Total expenses: ${{ total_expenses }}</div>
-            <div class="Column">Net total: ${{ net_total }}</div>
             <ul>
                 {% for t in transactions %}
-                    <li>{{ t.date }} – {{ t.description|default:"No description" }} – ${{ t.amount }}
+                    <li>
+                        {{ t.date }} – 
+                        {{ t.description|default:"No description" }} – 
+                        ${{ t.amount }}
                         ({{ t.get_type_display }}{% if t.category %} / {{ t.get_category_display }}{% endif %})
                     </li>
                 {% endfor %}
             </ul>
-            {% else %}
-                <p>No transactions match your filter criteria.</p>
-            {% endif %}
-        </div>
-    </p>
+        {% else %}
+            <p>No transactions match your filter criteria.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

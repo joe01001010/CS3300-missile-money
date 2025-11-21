@@ -393,7 +393,16 @@ def send_payment(request):
 def start_guide(request):
     """
     This function takes a request as an argument
-    This function also sets the user to the request.user
     This function will direct the user to the getting started html page
     """
     return render(request, 'getting-started.html')
+
+
+@login_required
+def savings_goal(request):
+    """
+    This function takes a request as an argument
+    This function also sets the user to the request.user
+    This function will direct the user to the page to set a savings goal
+    """
+    return render(request, 'savings-goal.html')

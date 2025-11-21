@@ -41,13 +41,13 @@
     box-shadow: 0 2px 8px rgba(0, 255, 65, 0.3);
 }
 
-.Row {
+.mm-row {
     display: table;
     width: 100%;
     table-layout: fixed;
     border-spacing: 10px;
 }
-.Column {
+
+.mm-column {
     display: table-cell;
-    background-color: red;
 }
