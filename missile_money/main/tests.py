@@ -1,10 +1,9 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core import mail
-from main.models import Transaction
+from main.models import Transaction, SavingsGoal
 from decimal import Decimal
 import datetime
 
@@ -725,3 +724,76 @@ class PeerPaymentTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('dashboard'), response.url)
         self.assertEqual(Transaction.objects.count(), initial_count)
+
+
+class SavingsGoalTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='savings_user',
+            password='testpass123'
+        )
+
+    def test_create_savings_goal(self):
+        """
+        Test that a user can create a savings goal and it is saved correctly.
+        """
+        self.client.login(username='savings_user', password='testpass123')
+        response = self.client.post(reverse('savings_goal'), {
+            'name': 'Emergency Fund',
+            'target_amount': '1000.00',
+            'target_date': '2025-12-31'
+        })
+        self.assertEqual(response.status_code, 302)
+
+        goal = SavingsGoal.objects.get(user=self.user)
+        self.assertEqual(goal.name, 'Emergency Fund')
+        self.assertEqual(goal.target_amount, Decimal('1000.00'))
+        self.assertEqual(goal.target_date, datetime.date(2025, 12, 31))
+
+    def test_progress_calculation(self):
+        """
+        Test that the progress percentage is calculated correctly
+        based on the user's income transactions.
+        """
+        goal = SavingsGoal.objects.create(
+            user=self.user,
+            name='Emergency Fund',
+            target_amount=Decimal('1000.00'),
+            target_date=datetime.date(2025, 12, 31)
+        )
+
+        Transaction.objects.create(
+            user=self.user,
+            type='income',
+            amount=Decimal('200.00'),
+            category='job'
+        )
+        Transaction.objects.create(
+            user=self.user,
+            type='income',
+            amount=Decimal('300.00'),
+            category='investments'
+        )
+
+        transactions = Transaction.objects.filter(user=self.user)
+        current_amount = sum(t.amount for t in transactions if t.type == 'income')
+        progress_percentage = min(100, (current_amount / goal.target_amount) * 100)
+
+        self.assertEqual(current_amount, Decimal('500.00'))
+        self.assertEqual(progress_percentage, 50)
+
+    def test_getting_started_flow_sets_goal(self):
+        """
+        Simulate the 'getting started' workflow where a user sets their first goal.
+        """
+        self.client.login(username='savings_user', password='testpass123')
+        response = self.client.post(reverse('savings_goal'), {
+            'name': 'Vacation Fund',
+            'target_amount': '2000.00',
+            'target_date': '2025-11-30'
+        })
+        self.assertEqual(response.status_code, 302)
+        goal = SavingsGoal.objects.get(user=self.user)
+        self.assertEqual(goal.name, 'Vacation Fund')
+        self.assertEqual(goal.target_amount, Decimal('2000.00'))

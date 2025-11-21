@@ -40,6 +40,15 @@
     </div>
 </div>
 
+<div class="card" style="margin-top: 1rem;">
+    <h2>Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <a href="{% url 'add_transaction' %}?type=income" class="btn">Add Income</a>
+        <a href="{% url 'add_transaction' %}?type=expense" class="btn" style="background-color: #ff4444;">Add Expense</a>
+        <a href="{% url 'view_reports' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</a>
+    </div>
+</div>
+
 <div class="card" style="margin-top: 2rem;">
     <h2>Recent Transactions</h2>
     {% if transactions %}
@@ -71,15 +80,6 @@
             </a>
         </p>
     {% endif %}
-</div>
-
-<div class="card" style="margin-top: 1rem;">
-    <h2>Quick Actions</h2>
-    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <a href="{% url 'add_transaction' %}?type=income" class="btn">Add Income</a>
-        <a href="{% url 'add_transaction' %}?type=expense" class="btn" style="background-color: #ff4444;">Add Expense</a>
-        <a href="{% url 'view_reports' %}" class="btn" style="background-color: var(--bg-tertiary); color: var(--text-primary);">View Reports</a>
-    </div>
 </div>
 
 {% endblock %}

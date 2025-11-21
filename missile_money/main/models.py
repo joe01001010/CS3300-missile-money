@@ -52,3 +52,27 @@ class Transaction(models.Model):
                 if value == self.category:
                     return label
         return self.category or 'Uncategorized'
+
+
+class SavingsGoal(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, default="My Savings Goal")  # Optional: give goals a name
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    target_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def current_amount(self):
+        return Transaction.objects.filter(user=self.user, type='income', category='savings').aggregate(
+            total=models.Sum('amount')
+        )['total'] or 0
+
+    @property
+    def progress_percentage(self):
+        if self.target_amount > 0:
+            return min(100, (self.current_amount / self.target_amount) * 100)
+        return 0
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name} (${self.target_amount}) by {self.target_date}"

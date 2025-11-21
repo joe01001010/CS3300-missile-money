@@ -8,11 +8,11 @@ from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import TransactionForm
-from .models import Transaction
+from .forms import TransactionForm, SavingsGoalForm
+from .models import Transaction, SavingsGoal
 from collections import defaultdict
 from django.utils.timezone import localtime
-from django.db.models import Q
+from django.db.models import Q, Sum
 from decimal import Decimal
 from django.contrib.auth.models import User
 
@@ -72,20 +72,17 @@ def register(request):
 @login_required
 def profile(request):
     """
-    This function will render the profile page
-    It will return a 200 status code
-    This will also display the transactions associated to the user profile like the reports.html page
+    Render the profile page, including transactions, financial summary,
+    and user's savings goal progress.
     """
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
-    # Extract query parameters for filtering
     category = request.GET.get('category')
     tx_type = request.GET.get('type')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     search_query = request.GET.get('q')
 
-    # Apply filters as needed
     if category:
         transactions = transactions.filter(category=category)
     if tx_type in ['income', 'expense']:
@@ -100,13 +97,21 @@ def profile(request):
             Q(category__icontains=search_query)
         )
 
-    # Calculate summary totals
     total_income = sum(t.amount for t in transactions if t.type == 'income')
     total_expenses = sum(t.amount for t in transactions if t.type == 'expense')
     net_total = total_income - total_expenses
 
-    # Combine category choices for dropdown
     categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
+
+    savings_goal = SavingsGoal.objects.filter(user=request.user).order_by('-created_at').first()
+    if savings_goal:
+        all_income = sum(t.amount for t in transactions if t.type == 'income')
+        all_expense = sum(t.amount for t in transactions if t.type == 'expense')
+        current_amount = all_income - all_expense
+        progress_percentage = min(100, (current_amount / savings_goal.target_amount) * 100) if savings_goal.target_amount > 0 else 0
+    else:
+        current_amount = 0
+        progress_percentage = 0
 
     context = {
         'transactions': transactions,
@@ -119,7 +124,11 @@ def profile(request):
         'total_income': total_income,
         'total_expenses': total_expenses,
         'net_total': net_total,
+        'savings_goal': savings_goal,
+        'current_amount': current_amount,
+        'progress_percentage': progress_percentage,
     }
+
     return render(request, 'registration/profile.html', context)
 
 
@@ -402,7 +411,15 @@ def start_guide(request):
 def savings_goal(request):
     """
     This function takes a request as an argument
-    This function also sets the user to the request.user
     This function will direct the user to the page to set a savings goal
     """
-    return render(request, 'savings-goal.html')
+    if request.method == 'POST':
+        form = SavingsGoalForm(request.POST)
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user = request.user
+            goal.save()
+            return redirect('dashboard')
+    else:
+        form = SavingsGoalForm()
+    return render(request, 'savings-goal.html', {'form': form})
