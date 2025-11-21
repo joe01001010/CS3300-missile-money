@@ -40,3 +40,46 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 255, 65, 0.3);
 }
+
+.mm-row {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 10px;
+}
+
+.mm-column {
+    display: table-cell;
+}
+
+.step-container {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Left column */
+.step-text {
+    flex: 1;
+}
+
+/* Right column */
+.step-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.step-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+    .step-container {
+        flex-direction: column;
+    }
+}

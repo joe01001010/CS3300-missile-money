@@ -1,5 +1,5 @@
 from django import forms
-from .models import Transaction
+from .models import Transaction, SavingsGoal
 from django.contrib.auth.models import User
 
 class TransactionForm(forms.ModelForm):
@@ -41,3 +41,14 @@ class TransactionForm(forms.ModelForm):
         else:
             # Default to empty choices
             self.fields['category'].choices = []
+
+
+class SavingsGoalForm(forms.ModelForm):
+    class Meta:
+        model = SavingsGoal
+        fields = ['name', 'target_amount', 'target_date']
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Name your goal', 'class': 'form-input'}),
+            'target_amount': forms.NumberInput(attrs={'placeholder': 'Amount to save', 'class': 'form-input', 'step': '0.01'}),
+            'target_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+        }

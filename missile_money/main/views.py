@@ -8,11 +8,11 @@ from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import TransactionForm
-from .models import Transaction
+from .forms import TransactionForm, SavingsGoalForm
+from .models import Transaction, SavingsGoal
 from collections import defaultdict
 from django.utils.timezone import localtime
-from django.db.models import Q
+from django.db.models import Q, Sum
 from decimal import Decimal
 from django.contrib.auth.models import User
 
@@ -72,11 +72,64 @@ def register(request):
 @login_required
 def profile(request):
     """
-    This function will render the profile page
-    It will return a 200 status code
-    There is no return value for this function
+    Render the profile page, including transactions, financial summary,
+    and user's savings goal progress.
     """
-    return render(request, 'registration/profile.html')
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    category = request.GET.get('category')
+    tx_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    search_query = request.GET.get('q')
+
+    if category:
+        transactions = transactions.filter(category=category)
+    if tx_type in ['income', 'expense']:
+        transactions = transactions.filter(type=tx_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+    if search_query:
+        transactions = transactions.filter(
+            Q(description__icontains=search_query) |
+            Q(category__icontains=search_query)
+        )
+
+    total_income = sum(t.amount for t in transactions if t.type == 'income')
+    total_expenses = sum(t.amount for t in transactions if t.type == 'expense')
+    net_total = total_income - total_expenses
+
+    categories = Transaction.INCOME_CATEGORIES + Transaction.EXPENSE_CATEGORIES
+
+    savings_goal = SavingsGoal.objects.filter(user=request.user).order_by('-created_at').first()
+    if savings_goal:
+        all_income = sum(t.amount for t in transactions if t.type == 'income')
+        all_expense = sum(t.amount for t in transactions if t.type == 'expense')
+        current_amount = all_income - all_expense
+        progress_percentage = min(100, (current_amount / savings_goal.target_amount) * 100) if savings_goal.target_amount > 0 else 0
+    else:
+        current_amount = 0
+        progress_percentage = 0
+
+    context = {
+        'transactions': transactions,
+        'categories': categories,
+        'selected_category': category,
+        'selected_type': tx_type,
+        'start_date': start_date,
+        'end_date': end_date,
+        'search_query': search_query,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'net_total': net_total,
+        'savings_goal': savings_goal,
+        'current_amount': current_amount,
+        'progress_percentage': progress_percentage,
+    }
+
+    return render(request, 'registration/profile.html', context)
 
 
 def custom_logout(request):
@@ -343,3 +396,30 @@ def send_payment(request):
         return redirect('dashboard')
 
     return render(request, 'send_payment.html')
+
+
+@login_required
+def start_guide(request):
+    """
+    This function takes a request as an argument
+    This function will direct the user to the getting started html page
+    """
+    return render(request, 'getting-started.html')
+
+
+@login_required
+def savings_goal(request):
+    """
+    This function takes a request as an argument
+    This function will direct the user to the page to set a savings goal
+    """
+    if request.method == 'POST':
+        form = SavingsGoalForm(request.POST)
+        if form.is_valid():
+            goal = form.save(commit=False)
+            goal.user = request.user
+            goal.save()
+            return redirect('dashboard')
+    else:
+        form = SavingsGoalForm()
+    return render(request, 'savings-goal.html', {'form': form})
