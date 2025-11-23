@@ -1,9 +1,10 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
 from django.core import mail
-from main.models import Transaction, SavingsGoal
+from main.models import Transaction, SavingsGoal, UserProfile
 from decimal import Decimal
 import datetime
 
@@ -71,14 +72,24 @@ class AuthenticationTests(TestCase):
         This should return a 302 status code and redirect to the login page
         There is no return value for this function
         """
+        dummy_file = SimpleUploadedFile("test.jpg", b"file_content", content_type="image/jpeg")
+
         response = self.client.post(reverse('register'), {
             'username': 'joe_test_user2',
             'password1': 'idklmao123123',
-            'password2': 'idklmao123123'
+            'password2': 'idklmao123123',
+            'email': 'joe_test_user2@example.com',
+            'first_name': 'Joe',
+            'last_name': 'Test',
+            'profile_image': dummy_file
         })
+
+        if response.status_code == 200:
+            print(response.context['form'].errors)
+
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/accounts/login/', response.url)
-        self.assertTrue(User.objects.filter(username='joe_test_user').exists())
+        self.assertIn(reverse('login'), response.url)
+        self.assertTrue(User.objects.filter(username='joe_test_user2').exists())
 
 
     def test_user_login(self):
@@ -789,3 +800,75 @@ class SavingsGoalTestCase(TestCase):
         goal = SavingsGoal.objects.get(user=self.user)
         self.assertEqual(goal.name, 'Vacation Fund')
         self.assertEqual(goal.target_amount, Decimal('2000.00'))
+
+
+class UserProfileEditTestCase(TestCase):
+    """
+    Test cases for editing user profile information such as
+    first name, last name, and email
+    """
+
+    def setUp(self):
+        """
+        This sets up the user for the test cases
+        """
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='profile_user',
+            password='testpass123',
+            first_name='OldFirst',
+            last_name='OldLast',
+            email='old@example.com'
+        )
+        self.user_profile = UserProfile.objects.create(user=self.user)
+
+
+    def test_profile_update_view_loads(self):
+        """
+        This ensures the edit profile page loads properly
+        """
+        self.client.login(username='profile_user', password='testpass123')
+        response = self.client.get(reverse('edit_profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Edit Profile')
+
+
+    def test_profile_data_updates_successfully(self):
+        """
+        This is to ensure after editing the users settings it actuallyt updates
+        """
+        self.client.login(username='profile_user', password='testpass123')
+        response = self.client.post(reverse('edit_profile'), {
+            'first_name': 'NewFirst',
+            'last_name': 'NewLast',
+            'email': 'new@example.com'
+        })
+        self.assertEqual(response.status_code, 302)
+
+        updated_user = User.objects.get(username='profile_user')
+        self.assertEqual(updated_user.first_name, 'NewFirst')
+        self.assertEqual(updated_user.last_name, 'NewLast')
+        self.assertEqual(updated_user.email, 'new@example.com')
+
+
+    def test_user_cannot_edit_other_users_profile(self):
+        """
+        This test will ensure other users cant edit someone elses account
+        """
+        other_user = User.objects.create_user(
+            username='other_user',
+            password='othertest123'
+        )
+        UserProfile.objects.create(user=other_user)
+
+        self.client.login(username='other_user', password='othertest123')
+        response = self.client.post(reverse('edit_profile'), {
+            'first_name': 'Hacked',
+            'last_name': 'Name',
+            'email': 'hacked@example.com'
+        })
+
+        unchanged_user = User.objects.get(username='profile_user')
+        self.assertNotEqual(unchanged_user.first_name, 'Hacked')
+        self.assertNotEqual(unchanged_user.last_name, 'Name')
+        self.assertNotEqual(unchanged_user.email, 'hacked@example.com')

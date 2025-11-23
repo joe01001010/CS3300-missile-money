@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
 from main import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 """
@@ -45,4 +47,5 @@ urlpatterns = [
     path('send_payment/', views.send_payment, name='send_payment'),
     path('getting-started/', views.start_guide, name='start_guide'),
     path('savings-goal/', views.savings_goal, name='savings_goal'),
-]
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

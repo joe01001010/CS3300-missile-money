@@ -1,18 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import TransactionForm, SavingsGoalForm
+from .forms import TransactionForm, SavingsGoalForm, CustomUserRegistrationForm, EditProfileForm, EditProfilePictureForm
 from .models import Transaction, SavingsGoal
 from collections import defaultdict
-from django.utils.timezone import localtime
-from django.db.models import Q, Sum
+from django.db.models import Q
 from decimal import Decimal
 from django.contrib.auth.models import User
 
@@ -53,18 +50,17 @@ def register(request):
     There is no return value for this function
     """
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}! You can now log in.')
+            messages.success(request, f'Account created for {user.username}! You can now log in.')
             return redirect('login')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
-        form = UserCreationForm()
+        form = CustomUserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form})
 
 
@@ -431,3 +427,29 @@ def savings_goal(request):
     else:
         form = SavingsGoalForm()
     return render(request, 'savings-goal.html', {'form': form})
+
+
+@login_required
+def edit_profile(request):
+    user = request.user
+    profile = user.userprofile
+
+    if request.method == 'POST':
+        user_form = EditProfileForm(request.POST, instance=user)
+        picture_form = EditProfilePictureForm(
+            request.POST, request.FILES, instance=profile
+        )
+
+        if user_form.is_valid() and picture_form.is_valid():
+            user_form.save()
+            picture_form.save()
+            return redirect('profile')
+
+    else:
+        user_form = EditProfileForm(instance=user)
+        picture_form = EditProfilePictureForm(instance=profile)
+
+    return render(request, 'edit_profile.html', {
+        'user_form': user_form,
+        'picture_form': picture_form,
+    })
