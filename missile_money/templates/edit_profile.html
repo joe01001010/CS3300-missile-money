@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card" style="max-width: 500px; margin: auto; padding: 2rem;">
+    <h2>Edit Profile</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h3>Account Info</h3>
+        {{ user_form.as_p }}
+
+        <h3>Profile Picture</h3>
+
+        {% if request.user.userprofile.profile_picture %}
+            <div style="margin-bottom: 1rem; text-align: center;">
+                <img src="{{ request.user.userprofile.profile_picture.url }}"
+                    alt="Current Profile Picture"
+                    style="
+                        width: 150px;
+                        height: 150px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 2px solid var(--border-color);
+                        margin-bottom: 0.75rem;
+                    ">
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                    Current photo
+                </p>
+            </div>
+        {% endif %}
+
+        {{ picture_form.profile_picture }}
+
+        <button type="submit" class="btn" style="width: 100%;">
+            Save Changes
+        </button>
+    </form>
+</div>
+
+{% endblock %}

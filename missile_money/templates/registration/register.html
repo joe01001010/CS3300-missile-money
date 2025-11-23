@@ -15,7 +15,7 @@
         {% endfor %}
     {% endif %}
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data" class="form">
         {% csrf_token %}
         
         {% for field in form %}
@@ -42,7 +42,10 @@
 </div>
 
 <style>
-    input[type="text"], input[type="password"] {
+    input[type="text"], 
+    input[type="password"], 
+    input[type="email"], 
+    input[type="file"] {
         width: 100%;
         padding: 0.75rem;
         background-color: var(--bg-tertiary);
@@ -52,7 +55,7 @@
         font-size: 1rem;
     }
 
-    input[type="text"]:focus, input[type="password"]:focus {
+    input:focus {
         outline: none;
         border-color: var(--accent-primary);
         box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2);
