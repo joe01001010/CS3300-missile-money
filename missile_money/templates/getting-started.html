@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="header" style="padding: 0.5rem 1rem;">
-    <h1 style="text-align: center;">Congratulations on getting started {{ request.user }}!</h1>
+    <h1 style="text-align: center;">Congratulations on getting started {{ request.user.first_name }}!</h1>
     <p style="text-align: center;">This is a simple guide to help you start tracking your financial goals!</p>
 </div>
 
@@ -18,7 +18,7 @@
         <p>As your financial maturity grows and your financial situation changes this should be updated.</p>
     </div>
     <div class="align-right">
-        <a href="{% url 'savings_goal' %}" class="btn">Stack Bread</a>
+        <a href="{% url 'savings_goal' %}" class="btn">Savings Goal</a>
     </div>
 
     <div class="step-image">
