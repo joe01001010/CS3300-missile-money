@@ -3,9 +3,11 @@ These instruction were created for windows as the OS to run them but it they wor
 
 
 ## Pre requisites
-You will one of the 4 following python versions to run this.
-python 3.10, 3.11, 3.12, 3.13
-You will also need pip installed to install the python packages for this program
+- You will need python>=3.10
+- https://www.python.org/downloads/windows/
+- Download the latest version of python, or one grater than 3.10
+- Ensure you check the box when running the installer that says 'Add Python to Path'
+- Click Install Now
 
 
 ## Steps
