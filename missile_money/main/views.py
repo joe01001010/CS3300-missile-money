@@ -229,7 +229,16 @@ def dashboard(request):
     
     monthly_income = sum(t.amount for t in transactions if t.type == 'income')
     monthly_expenses = sum(t.amount for t in transactions if t.type == 'expense')
-    savings_goal = 0
+    
+    savings_goal = SavingsGoal.objects.filter(user=request.user).order_by('-created_at').first()
+    if savings_goal:
+        all_income = sum(t.amount for t in transactions if t.type == 'income')
+        all_expense = sum(t.amount for t in transactions if t.type == 'expense')
+        current_amount = all_income - all_expense
+        progress_percentage = min(100, (current_amount / savings_goal.target_amount) * 100) if savings_goal.target_amount > 0 else 0
+    else:
+        current_amount = 0
+        progress_percentage = 0
 
     transactions_by_month = defaultdict(list)
     for t in transactions:
@@ -245,6 +254,7 @@ def dashboard(request):
         'monthly_income': monthly_income,
         'monthly_expenses': monthly_expenses,
         'savings_goal': savings_goal,
+        'progress_percentage': round(progress_percentage),
     }
     return render(request, 'dashboard.html', context)
 
