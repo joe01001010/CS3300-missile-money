@@ -33,11 +33,18 @@
         <small>This month</small>
     </div>
 
+    {% if savings_goal %}
     <div class="card">
         <h3>🎯 Savings Goal</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">0%</p>
-        <small>Progress</small>
+        <p style="font-size: 2rem; font-weight: bold; color: var(--accent-primary);">{{ progress_percentage }}%</p>
+        <small>Progress towards goal:{{ savings_goal.name }}</small>
     </div>
+    {% else %}
+    <div class="card">
+        <h3>🎯 Savings Goal</h3>
+        <p>You have no savings goal yet. <a href="{% url 'savings_goal' %}" class="btn">Set one now!</a></p>
+    </div>
+    {% endif %}
 </div>
 
 <div class="card" style="margin-top: 1rem;">
