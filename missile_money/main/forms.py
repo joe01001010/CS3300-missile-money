@@ -1,8 +1,5 @@
 from django import forms
 from .models import Transaction
-from django.contrib.auth import get_user_model
-from .models import Bill, BillShare, Transaction
-
 
 class TransactionForm(forms.ModelForm):
     category = forms.ChoiceField(choices=[], required=False, widget=forms.Select(attrs={'class': 'form-control'}))
@@ -35,24 +32,3 @@ class TransactionForm(forms.ModelForm):
         else:
             # Default to empty choices
             self.fields['category'].choices = []
-
-
-User = get_user_model()
-
-class BillSplitForm(forms.Form):
-    participants = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
-        help_text="Select everyone who should share this bill."
-    )
-    include_payer = forms.BooleanField(
-        required=False,
-        initial=True,
-        label="Include me in the split"
-    )
-    mark_my_share_paid = forms.BooleanField(
-        required=False,
-        initial=True,
-        label="Mark my share as paid"
-    )

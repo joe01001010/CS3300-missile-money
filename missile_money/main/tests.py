@@ -666,3 +666,62 @@ class ReportsViewTestCase(TestCase):
         self.assertEqual(response.context['total_income'], expected_income)
         self.assertEqual(response.context['total_expenses'], expected_expenses)
         self.assertEqual(response.context['net_total'], expected_net)
+
+
+class PeerPaymentTestCase(TestCase):
+    """
+    This function takes a test case as an argument
+    Test peer‑to‑peer payment functionality
+    Ensure that valid payments create two transactions and invalid inputs do not
+    This function doesnt return anything
+    """
+    def setUp(self):
+        self.sender = User.objects.create_user(username='sender', password='testpass')
+        self.receiver = User.objects.create_user(username='receiver', password='testpass')
+        self.client = Client()
+
+
+    def test_send_payment_creates_transactions(self):
+        self.client.login(username='sender', password='testpass')
+        amount = Decimal('50.00')
+        response = self.client.post(reverse('send_payment'), {
+            'recipient': 'receiver',
+            'amount': str(amount),
+            'description': 'Test peer transfer'
+        })
+        # should redirect to dashboard on success
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('dashboard'), response.url)
+
+        sender_tx = Transaction.objects.filter(user=self.sender, type='expense', category='peer').first()
+        receiver_tx = Transaction.objects.filter(user=self.receiver, type='income', category='peer').first()
+        self.assertIsNotNone(sender_tx)
+        self.assertIsNotNone(receiver_tx)
+        self.assertEqual(sender_tx.amount, amount)
+        self.assertEqual(receiver_tx.amount, amount)
+
+
+    def test_send_payment_invalid_recipient(self):
+        self.client.login(username='sender', password='testpass')
+        initial_count = Transaction.objects.count()
+        response = self.client.post(reverse('send_payment'), {
+            'recipient': 'nonexistent',
+            'amount': '10.00',
+            'description': 'Invalid recipient test'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('dashboard'), response.url)
+        self.assertEqual(Transaction.objects.count(), initial_count)
+
+
+    def test_send_payment_self_recipient(self):
+        self.client.login(username='sender', password='testpass')
+        initial_count = Transaction.objects.count()
+        response = self.client.post(reverse('send_payment'), {
+            'recipient': 'sender',
+            'amount': '25.00',
+            'description': 'Self payment test'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('dashboard'), response.url)
+        self.assertEqual(Transaction.objects.count(), initial_count)
