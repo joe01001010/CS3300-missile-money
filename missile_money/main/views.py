@@ -272,7 +272,7 @@ def view_reports(request):
     tx_type = request.GET.get('type')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    search_query = request.GET.get('q')
+    search_query = request.GET.get('q', '')
 
     if category:
         transactions = transactions.filter(category=category)
