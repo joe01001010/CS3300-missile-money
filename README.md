@@ -16,8 +16,6 @@ A Django-based personal finance management web application designed to help user
 
 - **Joe Weibel** - Scrum Master & Tester
 - **Jakob West** - Software Architect
-- **Jared Sandidge** - Front-end Developer
-- **Feras Alaskar** - Back-end Developer
 
 ## 🛠️ Technology Stack
 
@@ -42,17 +40,17 @@ A Django-based personal finance management web application designed to help user
 - ✅ Dark mode theme toggle
 - ✅ User feedback system
 - ✅ Responsive UI design
+- ✅ Savings goals tracking
+- ✅ Spending categorization and budgeting
+- ✅ Financial analytics and reports
+- ✅ Peer-to-peer payments
 
 ### Planned Features
-- 🔄 Currency conversion
-- 🔄 Savings goals tracking
-- 🔄 Spending categorization and budgeting
+- 🔄 Currency conversation
 - 🔄 Recurring payments management
 - 🔄 Split the bill functionality
 - 🔄 Export transaction data (CSV/Excel)
-- 🔄 Financial analytics and reports
 - 🔄 Multiple account support
-- 🔄 Peer-to-peer payments
 
 ## 🏗️ Architecture
 
@@ -237,11 +235,6 @@ We follow **Agile/Scrum** methodology with:
 - **Sprint Reviews**: Demo completed features
 - **Retrospectives**: Continuous improvement
 
-### Current Sprint Schedule
-- Sprint 1: Oct 8 - Oct 21, 2025
-- Sprint 2: Oct 22 - Nov 4, 2025
-- Sprint 3: Nov 5 - Nov 18, 2025
-- Sprint 4: Nov 19 - Nov 30, 2025
 
 ## 🤝 Contributing
 
